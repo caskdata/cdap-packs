@@ -46,7 +46,7 @@ the License.
     <jsr305.version>2.0.1</jsr305.version>
     <netty.http.version>0.4.0</netty.http.version>
     <tephra.version>0.2.0</tephra.version>
-    <twill.version>0.4.0-incubating-SNAPSHOT</twill.version>
+    <twill.version>[0.4.0-incubating-SNAPSHOT,0.5.0-SNAPSHOT)</twill.version>
 
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
