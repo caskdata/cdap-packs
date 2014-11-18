@@ -411,13 +411,12 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
   }
 
   private Map<TopicPartition, KafkaConsumerInfo<OFFSET>> createConsumerInfos(Map<TopicPartition, Integer> config) {
-    ImmutableMap.Builder<TopicPartition, KafkaConsumerInfo<OFFSET>> consumers = ImmutableMap.builder();
-
+    Map<TopicPartition, KafkaConsumerInfo<OFFSET>> consumers = Maps.newHashMap();
     for (Map.Entry<TopicPartition, Integer> entry : config.entrySet()) {
       consumers.put(entry.getKey(),
                     new KafkaConsumerInfo<OFFSET>(entry.getKey(), entry.getValue(), getBeginOffset(entry.getKey())));
     }
-    return consumers.build();
+    return consumers;
   }
 
   private void updateConsumerInfos(final Map<TopicPartition, Integer> config,
