@@ -59,7 +59,7 @@ public final class UniqueCount extends AbstractDataset implements RecordScannabl
     byte[] hll = uniques.get(row, col);
     HyperLogLogPlus hllplus;
     if(hll == null) {
-      hllplus = new HyperLogLogPlus(15,15);
+      hllplus = new HyperLogLogPlus(24,25);
     } else {
       hllplus = HyperLogLogPlus.Builder.build(hll);
     }
@@ -98,10 +98,7 @@ public final class UniqueCount extends AbstractDataset implements RecordScannabl
           }
         }
       }
-//      byte[] hll = currentRow.get(Constants.COLUMN_NAME);
-//      if (hll == null) {
-//        continue;
-//      }
+
       HyperLogLogPlus h1 = HyperLogLogPlus.Builder.build(partitionHLL.getBytes());
 
       if (isSegmentStartHLL) {

@@ -19,7 +19,7 @@ package co.cask.cdap.packs.uniques;
  * Represents the object that the {@link co.cask.cdap.packs.uniques.UniqueCount} table is
  * represented as.
  */
-public final class UniqueCountRecord {
+final class UniqueCountRecord {
   private final String dimension;
   private final long timestamp;
   private final long cardinality;

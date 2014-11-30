@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>co.cask.cdap.packs</groupId>
-  <artifactId>cdap-uniques</artifactId>
+  <artifactId>cdap-uniques-pack</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <properties>

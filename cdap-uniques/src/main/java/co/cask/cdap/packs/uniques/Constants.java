@@ -18,7 +18,7 @@ package co.cask.cdap.packs.uniques;
 /**
  * Common constants.
  */
-public final class Constants {
+final class Constants {
   public static final long LOWEST_RESOLUTION_SECONDS = 300L;
   public static final String COLUMN_NAME = "r";
 }

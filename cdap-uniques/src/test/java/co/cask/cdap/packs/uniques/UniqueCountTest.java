@@ -70,43 +70,6 @@ public class UniqueCountTest extends TestBase {
     clear();
   }
 
-  @Test
-  public void testUniqueCountQuery() throws Exception {
-    ApplicationManager applicationManager = deployApplication(UniquesApps.class);
-    DataSetManager<UniqueCount> dataSetManager = applicationManager.getDataSet("unique_count");
-    UniqueCount uniqueCountDataset = dataSetManager.get();
-
-    // Adding events to unique_count Dataset.
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(0), new Object[] { "1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4" });
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(1), new Object[] { "5.5.5.5", "6.6.6.6", "7.7.7.7", "4.5.56.67" });
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(2), new Object[] { "3.4.5.6", "6.7.8.4" });
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(3), new Object[] { "2.3.4.5", "4.4.4.4" });
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(4), new Object[] { "3.4.2.1", "8.4.2.4", "4.3.2.4" });
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(5), new Object[] { "4.3.2.2", "6.7.7.3", "1.2.0.1", "127.0.0.1" });
-    uniqueCountDataset.add("UNIQUE_IPS", getTime(6), new Object[] { "127.0.0.2", "67.89.2.4", "192.158.2.1",
-      "192.168.10.1", "10.1.12.1" });
-
-    // Flush all the data.
-    dataSetManager.flush();
-
-    Connection queryClient = getQueryClient();
-    ResultSet results = null;
-    try {
-      results = queryClient.prepareStatement("SELECT * FROM cdap_user_unique_count ORDER by timestamp").executeQuery();
-      Assert.assertNotNull(results);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 4L);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 4L);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 2L);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 2L);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 3L);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 4L);
-//      results.next(); Assert.assertTrue(results.getLong(3) == 5L);
-    } finally {
-      results.close();
-      queryClient.close();
-    }
-    clear();
-  }
 
   @Test
   public void testCountsWithPartition() throws Exception {
@@ -117,11 +80,13 @@ public class UniqueCountTest extends TestBase {
     // Adding events to unique_count Dataset.
     uniqueCountDataset.add("UNIQUE_USERS", getTime(0), new Object[] { "A", "B", "C", "D" }, 1);
     uniqueCountDataset.add("UNIQUE_USERS", getTime(0), new Object[] { "E", "F", "G", "H" }, 2);
-    uniqueCountDataset.add("UNIQUE_USERS", getTime(0), new Object[] { "I", "J" }, 3);
-    uniqueCountDataset.add("UNIQUE_USERS", getTime(1), new Object[] { "K" }, 1);                     // ts + 15 min
-    uniqueCountDataset.add("UNIQUE_USERS", getTime(1), new Object[] { "L", "M", "N" }, 2);           // ts + 20 min
-    uniqueCountDataset.add("UNIQUE_USERS", getTime(1), new Object[] { "O", "P", "C", "D" }, 3);      // ts + 25 min
-    uniqueCountDataset.add("UNIQUE_USERS", getTime(2), new Object[] { "Q", "R", "S", "T", "U" }); // ts + 30 min
+    uniqueCountDataset.add("UNIQUE_USERS", getTime(0), new Object[] { "I", "J", "A", "C", "D"}, 3); // Only 10 uniques
+
+    uniqueCountDataset.add("UNIQUE_USERS", getTime(1), new Object[] { "K" }, 1);
+    uniqueCountDataset.add("UNIQUE_USERS", getTime(1), new Object[] { "L", "M", "N", "K"}, 2);
+    uniqueCountDataset.add("UNIQUE_USERS", getTime(1), new Object[] { "O", "P", "C", "D", "K", "L", "O", "N" }, 3);
+
+    uniqueCountDataset.add("UNIQUE_USERS", getTime(2), new Object[] { "Q", "R", "S", "T", "U" });
 
     // Querying based on time.
     List<Result> result;
@@ -135,6 +100,16 @@ public class UniqueCountTest extends TestBase {
     result = uniqueCountDataset.query("UNIQUE_USERS", getTime(1), getTime(2), Resolution.FIVE_MIN);
     Assert.assertTrue(result.size() == 1);
     Assert.assertTrue(result.get(0).getCount() == 8);
+
+    // 16 Unique users between ts >= getTime(0) & ts < getTime(3).
+    result = uniqueCountDataset.query("UNIQUE_USERS", getTime(0), getTime(3), Resolution.TEN_MIN);
+    Assert.assertTrue(result.size() == 1);
+    Assert.assertTrue(result.get(0).getCount() == 16);
+
+    // 21 Unique users between ts >= getTime(0) & ts < getTime(3).
+    result = uniqueCountDataset.query("UNIQUE_USERS", getTime(0), getTime(4), Resolution.FIFTEEN_MIN);
+    Assert.assertTrue(result.size() == 1);
+    Assert.assertTrue(result.get(0).getCount() == 21);
 
     // Clear the environment.
     clear();
