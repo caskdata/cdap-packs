@@ -35,7 +35,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -68,7 +67,7 @@ public class HBaseSinkTest extends TestBase {
     hBaseTestBase.stopHBase();
   }
 
-  @Test @Ignore
+  @Test
   public void testConfigurationWithArgs() throws Exception {
     // sink configuration
     ImmutableMap<String, String> args = ImmutableMap.<String, String>builder()
@@ -82,7 +81,7 @@ public class HBaseSinkTest extends TestBase {
     testApp(RealtimeETLToHBaseConfiguredWithArgs.class, args, "stream1", "table1");
   }
 
-  @Test @Ignore
+  @Test
   public void testConfigurationWithCode() throws Exception {
     testApp(RealtimeETLToHBaseConfiguredWithCode.class, Collections.<String, String>emptyMap(), "stream2", "table2");
   }

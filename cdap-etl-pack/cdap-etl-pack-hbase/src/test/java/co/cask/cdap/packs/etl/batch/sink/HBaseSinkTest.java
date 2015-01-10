@@ -20,13 +20,13 @@ import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.table.Put;
 import co.cask.cdap.api.dataset.table.Table;
+import co.cask.cdap.packs.etl.Constants;
+import co.cask.cdap.packs.etl.hbase.HBase96Test;
+import co.cask.cdap.packs.etl.hbase.HBaseTestBase;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.MapReduceManager;
 import co.cask.cdap.test.TestBase;
-import co.cask.cdap.packs.etl.Constants;
-import co.cask.cdap.packs.etl.hbase.HBase96Test;
-import co.cask.cdap.packs.etl.hbase.HBaseTestBase;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTable;
@@ -34,7 +34,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -63,7 +62,7 @@ public class HBaseSinkTest extends TestBase {
     hBaseTestBase.stopHBase();
   }
 
-  @Test @Ignore
+  @Test
   public void testConfiguredByArgs() throws Exception {
     Map<String, String> args = Maps.newHashMap();
 
