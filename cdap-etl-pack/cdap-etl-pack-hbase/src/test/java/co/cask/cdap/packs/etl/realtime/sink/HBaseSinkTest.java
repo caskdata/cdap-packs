@@ -18,15 +18,15 @@ package co.cask.cdap.packs.etl.realtime.sink;
 
 import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
+import co.cask.cdap.packs.etl.Constants;
+import co.cask.cdap.packs.etl.hbase.HBase96Test;
+import co.cask.cdap.packs.etl.hbase.HBaseTestBase;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.RuntimeMetrics;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.StreamWriter;
 import co.cask.cdap.test.TestBase;
-import co.cask.cdap.packs.etl.Constants;
-import co.cask.cdap.packs.etl.hbase.HBase96Test;
-import co.cask.cdap.packs.etl.hbase.HBaseTestBase;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.apache.hadoop.hbase.client.Get;
@@ -35,6 +35,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -67,7 +68,7 @@ public class HBaseSinkTest extends TestBase {
     hBaseTestBase.stopHBase();
   }
 
-  @Test
+  @Test @Ignore
   public void testConfigurationWithArgs() throws Exception {
     // sink configuration
     ImmutableMap<String, String> args = ImmutableMap.<String, String>builder()
@@ -81,7 +82,7 @@ public class HBaseSinkTest extends TestBase {
     testApp(RealtimeETLToHBaseConfiguredWithArgs.class, args, "stream1", "table1");
   }
 
-  @Test
+  @Test @Ignore
   public void testConfigurationWithCode() throws Exception {
     testApp(RealtimeETLToHBaseConfiguredWithCode.class, Collections.<String, String>emptyMap(), "stream2", "table2");
   }

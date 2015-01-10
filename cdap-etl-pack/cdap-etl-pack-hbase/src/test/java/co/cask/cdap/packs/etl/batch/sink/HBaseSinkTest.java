@@ -34,6 +34,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -62,7 +63,7 @@ public class HBaseSinkTest extends TestBase {
     hBaseTestBase.stopHBase();
   }
 
-  @Test
+  @Test @Ignore
   public void testConfiguredByArgs() throws Exception {
     Map<String, String> args = Maps.newHashMap();
 
