@@ -1,7 +1,7 @@
 CDAP Twitter Pack
 =================
 
-Libraries for interacting with Twitter when building app using ` CDAP <http://cdap.io>`__.
+Libraries for interacting with Twitter when building app using `CDAP <http://cdap.io>`__.
 
 
 License
