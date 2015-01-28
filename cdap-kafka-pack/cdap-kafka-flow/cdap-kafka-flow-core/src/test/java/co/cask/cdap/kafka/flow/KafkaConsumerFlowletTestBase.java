@@ -163,21 +163,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     Assert.assertEquals(2, sinkMetrics.getProcessed());
 
     flowManager.stop();
-
-    // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
-    KeyValueTable counter = appManager.<KeyValueTable>getDataSet("counter").get();
-    CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(null, null);
-    try {
-      int size = 0;
-      while (scanner.hasNext()) {
-        KeyValue<byte[], byte[]> keyValue = scanner.next();
-        Assert.assertEquals(1L, Bytes.toLong(keyValue.getValue()));
-        size++;
-      }
-      Assert.assertEquals(msgCount, size);
-    } finally {
-      scanner.close();
-    }
+    assertDatasetCount(appManager, msgCount);
   }
 
   @Test
@@ -210,22 +196,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     sinkMetrics.waitForProcessed(msgCount, 10, TimeUnit.SECONDS);
 
     flowManager.stop();
-
-    // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
-    KeyValueTable counter = appManager.<KeyValueTable>getDataSet("counter").get();
-    byte[] startRow = Bytes.toBytes("TestInstances ");
-    CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(startRow, Bytes.stopKeyForPrefix(startRow));
-    try {
-      int size = 0;
-      while (scanner.hasNext()) {
-        KeyValue<byte[], byte[]> keyValue = scanner.next();
-        Assert.assertEquals(1L, Bytes.toLong(keyValue.getValue()));
-        size++;
-      }
-      Assert.assertEquals(msgCount, size);
-    } finally {
-      scanner.close();
-    }
+    assertDatasetCount(appManager, msgCount);
   }
 
   @Test
@@ -262,7 +233,10 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     Assert.assertEquals(msgCount, sinkMetrics.getProcessed());
 
     flowManager.stop();
+    assertDatasetCount(appManager, msgCount);
+  }
 
+  private void assertDatasetCount(ApplicationManager appManager, int expectedMsgCount) {
     // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
     KeyValueTable counter = appManager.<KeyValueTable>getDataSet("counter").get();
     CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(null, null);
@@ -273,7 +247,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
         Assert.assertEquals(1L, Bytes.toLong(keyValue.getValue()));
         size++;
       }
-      Assert.assertEquals(msgCount, size);
+      Assert.assertEquals(expectedMsgCount, size);
     } finally {
       scanner.close();
     }
