@@ -16,32 +16,23 @@
 
 package co.cask.cdap.packs.etl.batch;
 
-import co.cask.cdap.api.mapreduce.MapReduce;
-import co.cask.cdap.api.schedule.Schedule;
-import co.cask.cdap.api.workflow.Workflow;
-import co.cask.cdap.api.workflow.WorkflowSpecification;
+import co.cask.cdap.api.workflow.AbstractWorkflow;
 
 /**
- * Schedules MapReduce ETL job
+ * Contains MapReduce ETL job
  */
-public class ETLMapReduceWorkflow implements Workflow {
+public class ETLMapReduceWorkflow extends AbstractWorkflow {
+  public static final String NAME = "ETLMapReduceWorkFlow";
+  private String mapReduce = null;
 
-  private MapReduce mapReduce = null;
-
-  public ETLMapReduceWorkflow(MapReduce mapReduce) {
+  public ETLMapReduceWorkflow(String mapReduce) {
     this.mapReduce = mapReduce;
   }
 
   @Override
-  public WorkflowSpecification configure() {
-    long intervalInMinutes = 10;
-    return WorkflowSpecification.Builder.with()
-      .setName("ETLMapReduceWorkflow")
-      .setDescription("Performs incremental processing with MapReduce job")
-      .onlyWith(mapReduce == null ? new ETLMapReduce() : mapReduce)
-      .addSchedule(new Schedule(
-        "FiveMinuteSchedule", "Run every " + intervalInMinutes + " minutes",
-        "0/" + intervalInMinutes + " * * * *", Schedule.Action.START))
-      .build();
+  public void configure() {
+    setName(NAME);
+    setDescription("Performs incremental processing with MapReduce job");
+    addMapReduce(mapReduce);
   }
 }

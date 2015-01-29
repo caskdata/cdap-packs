@@ -48,7 +48,11 @@ public class BatchETL extends DatasetsTrackingApplication {
 
     // todo: this seems redundant: we add it as part of workflow
     addMapReduce(mapReduce);
-    addWorkflow(new ETLMapReduceWorkflow(mapReduce));
+    addWorkflow(new ETLMapReduceWorkflow(ETLMapReduce.NAME));
+
+    long intervalInMinutes = 10;
+    String cronEntry = "0/" + intervalInMinutes + " * * * *";
+    scheduleWorkflow("FiveMinuteSchedule", cronEntry, ETLMapReduceWorkflow.NAME);
   }
 
   protected void configure(Configurer configurer) {
