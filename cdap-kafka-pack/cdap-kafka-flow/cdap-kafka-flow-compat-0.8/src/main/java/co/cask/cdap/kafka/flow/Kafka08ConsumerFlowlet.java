@@ -147,6 +147,7 @@ public abstract class Kafka08ConsumerFlowlet<KEY, PAYLOAD> extends KafkaConsumer
     long readOffset = consumerInfo.getReadOffset();
     if (readOffset < 0) {
       readOffset = getReadOffset(consumer, topic, partition, readOffset);
+      consumerInfo.setReadOffset(readOffset);
     }
 
     FetchRequest fetchRequest = new FetchRequestBuilder()

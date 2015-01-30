@@ -135,7 +135,7 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
       return;
     }
 
-    int count = 0;
+    boolean infosUpdated = false;
     // Poll for messages from Kafka
     for (KafkaConsumerInfo<OFFSET> info : consumerInfos.values()) {
       Iterator<KafkaMessage<OFFSET>> iterator = readMessages(info);
@@ -145,12 +145,14 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
 
         // Update the read offset
         info.setReadOffset(message.getNextOffset());
-        ++count;
+      }
+      if (info.hasPendingChanges()) {
+        infosUpdated = true;
       }
     }
 
-    // Save new offset if there is atleast one message processed.
-    if (count > 0) {
+    // Save new offset if there is at least one message processed, or even if the offset simply changed.
+    if (infosUpdated) {
       saveReadOffsets(Maps.transformValues(consumerInfos, consumerToOffset));
     }
   }

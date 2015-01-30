@@ -151,7 +151,7 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
     Map<String, Long> offsets = Maps.newHashMap(consumerInfo.getReadOffset());
     KafkaBroker broker = brokers.get(0);
     SimpleConsumer consumer = getConsumer(broker, consumerInfo.getFetchSize());
-    long offset = getBrokerOffset(broker, consumerInfo.getTopicPartition(), offsets, consumer);
+    long offset = getBrokerOffset(broker, consumerInfo, offsets, consumer);
     FetchResult result = fetchMessages(broker, consumer, topicPartition, offset, consumerInfo.getFetchSize());
     return handleFetch(consumerInfo, offsets, result);
   }
@@ -292,7 +292,7 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
     CompletionService<FetchResult> fetches = new ExecutorCompletionService<FetchResult>(executor);
     for (final KafkaBroker broker : brokers) {
       final SimpleConsumer consumer = getConsumer(broker, consumerInfo.getFetchSize());
-      final long offset = getBrokerOffset(broker, consumerInfo.getTopicPartition(), offsets, consumer);
+      final long offset = getBrokerOffset(broker, consumerInfo, offsets, consumer);
 
       fetches.submit(new Callable<FetchResult>() {
         @Override
@@ -338,27 +338,28 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
   }
 
   /**
-   * Returns the offset to start fetching from.
+   * Returns the offset to start fetching from, and updates the consumerInfo if necessary.
    *
    * @param broker The broker to fetch from
-   * @param topicPartition Topic and partition to fetch from
+   * @param consumerInfo information on what and how to consume
    * @param offsets existing offset states; the map may be modified by the calling of this method.
    * @param consumer consumer for talking to the broker.
    * @return offset for the given {@link TopicPartition} in the given {@link KafkaBroker}.
    */
-  private long getBrokerOffset(KafkaBroker broker, TopicPartition topicPartition,
+  private long getBrokerOffset(KafkaBroker broker, KafkaConsumerInfo<Map<String, Long>> consumerInfo,
                                Map<String, Long> offsets, SimpleConsumer consumer) {
     Long offset = offsets.get(broker.getId());
     if (offset == null) {
+      TopicPartition topicPartition = consumerInfo.getTopicPartition();
       offset = getDefaultOffset(broker, topicPartition);
-      offsets.put(broker.getId(), offset);
-    }
 
-    // Special offset value. Need to talk to Kafka to find the right offset.
-    if (offset < 0) {
-      long[] result = consumer.getOffsetsBefore(topicPartition.getTopic(), topicPartition.getPartition(), offset, 1);
-      offset = result.length > 0 ? result[0] : 0L;
+      // Special offset value. Need to talk to Kafka to find the right offset.
+      if (offset < 0) {
+        long[] result = consumer.getOffsetsBefore(topicPartition.getTopic(), topicPartition.getPartition(), offset, 1);
+        offset = result.length > 0 ? result[0] : 0L;
+      }
       offsets.put(broker.getId(), offset);
+      consumerInfo.setReadOffset(offsets);
     }
     return offset;
   }
