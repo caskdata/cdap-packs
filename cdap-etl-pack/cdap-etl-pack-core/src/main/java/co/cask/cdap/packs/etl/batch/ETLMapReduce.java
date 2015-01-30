@@ -43,6 +43,7 @@ import java.util.Set;
  * Map-reduce program that performs ETL work
  */
 public class ETLMapReduce extends AbstractMapReduce {
+  public static final String NAME = "ETLMapReduce";
   // Optional: will be resolved via args
   private MapReduceSource source = null;
   private Transformation transformation = null;
@@ -76,7 +77,7 @@ public class ETLMapReduce extends AbstractMapReduce {
       args.putAll(sink.getConfiguration());
     }
 
-    setName("ETLMapReduce");
+    setName(NAME);
     setDescription("");
     setProperties(args);
     useDatasets(ImmutableList.of(Constants.DICTIONARY_DATASET, Constants.ETL_META_DATASET));

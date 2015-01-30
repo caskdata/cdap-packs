@@ -16,6 +16,7 @@
 
 package co.cask.cdap.packs.etl.batch.source;
 
+import co.cask.cdap.api.data.batch.Split;
 import co.cask.cdap.api.mapreduce.MapReduceContext;
 import co.cask.cdap.packs.etl.Constants;
 import co.cask.cdap.packs.etl.Programs;
@@ -33,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -113,7 +115,7 @@ public class StreamSource extends SchemaSource<LongWritable, Text> {
 
     String inputStreamUri = String.format("stream://%s?start=%d&end=%d", inputStream, startTime, endTime);
     LOG.info("Set input to {}", inputStreamUri);
-    context.setInput(inputStreamUri, null);
+    context.setInput(inputStreamUri, (List<Split>) null);
   }
 
   @Override

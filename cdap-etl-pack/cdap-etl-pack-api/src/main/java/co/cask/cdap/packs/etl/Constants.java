@@ -32,7 +32,7 @@ public final class Constants  {
   public static final String ARG_TASK_ID = "etl.taskId";
 
   /** Name of the stream to be used by flow upon deploying an app. Actual stream source is set after deploy */
-  public static final String DEFAULT_INPUT_STREAM = "default-stream";
+  public static final String DEFAULT_INPUT_STREAM = "default_stream";
 
   /** Batch processing configuration option names */
   public static final class Batch {
