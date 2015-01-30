@@ -122,6 +122,8 @@ public class HBaseSink extends AbstractConfigurableProgram<MapReduceContext> imp
 
   private void createTableIfNotExists(String tableName, String zkQuorum, int zkClientPort) throws IOException {
     Configuration conf = HBaseConfiguration.create();
+    // https://github.com/apache/hbase/pull/10
+    conf.setClassLoader(HBaseConfiguration.class.getClassLoader());
     conf.set(HConstants.ZOOKEEPER_QUORUM, zkQuorum);
     conf.setInt(HConstants.ZOOKEEPER_CLIENT_PORT, zkClientPort);
     conf.set(HConstants.ZOOKEEPER_ZNODE_PARENT, zkParentNode);

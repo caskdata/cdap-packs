@@ -19,7 +19,7 @@ package co.cask.cdap.packs.etl.batch;
 import co.cask.cdap.api.workflow.AbstractWorkflow;
 
 /**
- * Contains MapReduce ETL job
+ * Contains ETL MapReduce program
  */
 public class ETLMapReduceWorkflow extends AbstractWorkflow {
   public static final String NAME = "ETLMapReduceWorkFlow";
@@ -32,7 +32,7 @@ public class ETLMapReduceWorkflow extends AbstractWorkflow {
   @Override
   public void configure() {
     setName(NAME);
-    setDescription("Performs incremental processing with MapReduce job");
+    setDescription("Performs incremental processing with ETL MapReduce");
     addMapReduce(mapReduce);
   }
 }

@@ -52,7 +52,7 @@ public class BatchETL extends DatasetsTrackingApplication {
 
     long intervalInMinutes = 10;
     String cronEntry = "0/" + intervalInMinutes + " * * * *";
-    scheduleWorkflow("FiveMinuteSchedule", cronEntry, ETLMapReduceWorkflow.NAME);
+    scheduleWorkflow("TenMinuteSchedule", cronEntry, ETLMapReduceWorkflow.NAME);
   }
 
   protected void configure(Configurer configurer) {

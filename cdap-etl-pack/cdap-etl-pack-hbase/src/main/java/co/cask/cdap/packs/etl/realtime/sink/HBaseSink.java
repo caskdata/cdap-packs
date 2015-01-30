@@ -101,6 +101,8 @@ public class HBaseSink extends AbstractConfigurableProgram<FlowletContext> imple
     zkParentNode = Programs.getRequiredArgOrProperty(context, Constants.Realtime.Sink.HBase.ARG_HBASE_ZOOKEEPER_PARENT_NODE);
 
     Configuration conf = HBaseConfiguration.create();
+    // https://github.com/apache/hbase/pull/10
+    conf.setClassLoader(HBaseConfiguration.class.getClassLoader());
     conf.set(HConstants.ZOOKEEPER_QUORUM, zkQuorum);
     conf.setInt(HConstants.ZOOKEEPER_CLIENT_PORT, zkClientPort);
     conf.set(HConstants.ZOOKEEPER_ZNODE_PARENT, zkParentNode);
