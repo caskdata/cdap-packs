@@ -38,7 +38,7 @@
   </modules>
 
   <properties>
-    <cdap.version>2.7.0-SNAPSHOT</cdap.version>
+    <cdap.version>2.7.0</cdap.version>
     <hadoop.version>2.3.0</hadoop.version>
     <hive.version>0.13.0</hive.version>
     <hbase.version>0.96.0-hadoop2</hbase.version>
