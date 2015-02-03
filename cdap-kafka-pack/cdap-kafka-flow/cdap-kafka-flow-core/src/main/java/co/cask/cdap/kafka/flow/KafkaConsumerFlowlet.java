@@ -344,7 +344,7 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
     if (ByteBuffer.class.equals(type)) {
       return (Function<ByteBuffer, T>) createByteBufferDecoder();
     }
-    if ((byte[].class.equals(type)) || (type instanceof GenericArrayType &&
+    if (byte[].class.equals(type) || (type instanceof GenericArrayType &&
       byte.class.equals(((GenericArrayType) type).getGenericComponentType()))) {
       return (Function<ByteBuffer, T>) createBytesDecoder();
     }
