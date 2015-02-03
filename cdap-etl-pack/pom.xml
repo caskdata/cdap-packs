@@ -27,6 +27,7 @@
     transformation methods and sink.
   </description>
   <packaging>pom</packaging>
+  <url>https://github.com/caskdata/cdap-packs</url>
 
   <modules>
     <module>cdap-etl-pack-api</module>
