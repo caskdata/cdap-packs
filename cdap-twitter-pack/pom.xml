@@ -23,10 +23,10 @@
   <artifactId>cdap-twitter-pack</artifactId>
   <groupId>co.cask.cdap.packs</groupId>
   <name>CDAP Twitter Pack</name>
-  <version>0.1.2-SNAPSHOT</version>
+  <version>0.1.4-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Data Application Platform for Hadoop: Twitter Pack</description>
-  <url>https://github.com/caskdata/cdap</url>
+  <url>https://github.com/caskdata/cdap-packs</url>
 
   <properties>
     <cdap.version>2.8.0-SNAPSHOT</cdap.version>
