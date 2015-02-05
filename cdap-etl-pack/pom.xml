@@ -49,7 +49,7 @@
     <jsr305.version>2.0.1</jsr305.version>
     <netty.http.version>0.4.0</netty.http.version>
     <tephra.version>0.3.2</tephra.version>
-    <twill.version>0.4.0-incubating-SNAPSHOT</twill.version>
+    <twill.version>0.4.0-incubating</twill.version>
 
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
