@@ -79,7 +79,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   }
 
   @After
-  public void cleanUpMetrics() {
+  public void cleanUpMetrics() throws Exception {
     RuntimeStats.resetAll();
     clear();
   }
@@ -214,6 +214,46 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     // -1 as the beginOffset signals that the flow should start reading from the last event currently in kafka (so it
     // should ignore the 5 that were sent before starting the flow.
     FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, -1));
+    // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
+    TimeUnit.SECONDS.sleep(2);
+
+    // Publish an additional 5 messages to Kafka, the flow should consume them
+    messages = Maps.newHashMap();
+    for (int i = msgCount; i < msgCount + 5; i++) {
+      messages.put(Integer.toString(i), "Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    sinkMetrics.waitForProcessed(5, 10, TimeUnit.SECONDS);
+
+    // Sleep for a while; Even though we sent 10 messages total, we sent only 5 after starting the flow, so
+    // no more messages should be processed
+    TimeUnit.SECONDS.sleep(2);
+    Assert.assertEquals(msgCount, sinkMetrics.getProcessed());
+
+    flowManager.stop();
+    assertDatasetCount(appManager, msgCount);
+  }
+
+  @Test
+  public final void testInvalidStartOffset() throws Exception {
+    String topic = "testInvalidStartOffset";
+    // Publish 5 messages to Kafka before starting the flow.
+    int msgCount = 5;
+    Map<String, String> messages = Maps.newHashMap();
+    for (int i = 0; i < msgCount; i++) {
+      messages.put(Integer.toString(i), "Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    ApplicationManager appManager = deployApplication(getApplication());
+    // Invalid start offset as the beginOffset throws OffsetOutOfRangeException on trying to fetch messages from Kafka.
+    // Since the invalid offset is larger than the latest offset available, the flow should start reading from the 
+    // last event currently in kafka (so it should ignore the 5 that were sent before starting the flow).
+    long invalidStartOffset = 12345678901234L;
+    FlowManager flowManager =
+      appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
     // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
     TimeUnit.SECONDS.sleep(2);
 
