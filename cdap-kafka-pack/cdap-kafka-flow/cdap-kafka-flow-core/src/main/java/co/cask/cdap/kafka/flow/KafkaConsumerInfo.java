@@ -51,6 +51,10 @@ public final class KafkaConsumerInfo<OFFSET> {
     this.pendingReadOffset = readOffset;
   }
 
+  public boolean hasPendingChanges() {
+    return this.pendingReadOffset != null;
+  }
+
   void commitReadOffset() {
     if (pendingReadOffset != null) {
       readOffset = pendingReadOffset;

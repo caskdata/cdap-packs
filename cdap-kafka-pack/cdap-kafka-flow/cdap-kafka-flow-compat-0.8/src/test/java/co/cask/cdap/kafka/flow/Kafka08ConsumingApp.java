@@ -20,6 +20,7 @@ import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.dataset.lib.KeyValueTable;
 import co.cask.cdap.api.flow.flowlet.Flowlet;
 import co.cask.cdap.api.flow.flowlet.OutputEmitter;
+import org.apache.twill.kafka.client.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,16 @@ public class Kafka08ConsumingApp extends KafkaConsumingApp {
           configurer.addTopicPartition(runtimeArgs.get("kafka.topic"), i);
         }
       }
+    }
+
+    @Override
+    protected long getDefaultOffset(TopicPartition topicPartition) {
+      String argValue = getContext().getRuntimeArguments().get("kafka.default.offset");
+      if (argValue != null) {
+        return Long.valueOf(argValue);
+      }
+
+      return super.getDefaultOffset(topicPartition);
     }
 
     @Override

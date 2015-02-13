@@ -32,12 +32,15 @@ import com.google.common.collect.Maps;
 import org.apache.twill.internal.kafka.EmbeddedKafkaServer;
 import org.apache.twill.internal.utils.Networks;
 import org.apache.twill.internal.zookeeper.InMemoryZKServer;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,11 +53,12 @@ import java.util.concurrent.TimeoutException;
  * Abstract base class for writing a Kafka consuming flowlet test.
  */
 public abstract class KafkaConsumerFlowletTestBase extends TestBase {
+  private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFlowletTestBase.class);
 
   @ClassRule
   public static final TemporaryFolder TMP_FOLDER = new TemporaryFolder();
 
-  private static final int PARTITIONS = 6;
+  protected static final int PARTITIONS = 6;
 
   protected static InMemoryZKServer zkServer;
   protected static EmbeddedKafkaServer kafkaServer;
@@ -75,6 +79,12 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   public static void cleanup() {
     kafkaServer.stopAndWait();
     zkServer.stopAndWait();
+  }
+
+  @After
+  public void cleanUpMetrics() throws Exception {
+    RuntimeStats.resetAll();
+    clear();
   }
 
   /**
@@ -105,6 +115,12 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
       args.put("kafka.brokers", "localhost:" + kafkaPort);
     }
     args.put("kafka.partitions", Integer.toString(partitions));
+    return args;
+  }
+
+  protected Map<String, String> getRuntimeArgs(String topic, int partitions, boolean preferZK, long startOffset) {
+    Map<String, String> args = getRuntimeArgs(topic, partitions, preferZK);
+    args.put("kafka.default.offset", Long.toString(startOffset));
     return args;
   }
 
@@ -139,7 +155,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     sendMessage(topic, messages);
 
     // Clear stats and start the flow again (using ZK to discover broker this time)
-    RuntimeStats.clearStats("KafkaConsumingApp");
+    RuntimeStats.resetAll();
     flowManager = startFlowWithRetry(appManager, "KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, true), 5);
 
     // Wait for 2 messages. This should be ok.
@@ -150,21 +166,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     Assert.assertEquals(2, sinkMetrics.getProcessed());
 
     flowManager.stop();
-
-    // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
-    KeyValueTable counter = appManager.<KeyValueTable>getDataSet("counter").get();
-    CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(null, null);
-    try {
-      int size = 0;
-      while (scanner.hasNext()) {
-        KeyValue<byte[], byte[]> keyValue = scanner.next();
-        Assert.assertEquals(1L, Bytes.toLong(keyValue.getValue()));
-        size++;
-      }
-      Assert.assertEquals(msgCount, size);
-    } finally {
-      scanner.close();
-    }
+    assertDatasetCount(appManager, msgCount);
   }
 
   @Test
@@ -197,11 +199,157 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     sinkMetrics.waitForProcessed(msgCount, 10, TimeUnit.SECONDS);
 
     flowManager.stop();
+    assertDatasetCount(appManager, msgCount);
+  }
 
+  @Test
+  public final void testStartOffset() throws Exception {
+    String topic = "testStartOffset";
+    // Publish 5 messages to Kafka before starting the flow.
+    int msgCount = 5;
+    Map<String, String> messages = Maps.newHashMap();
+    for (int i = 0; i < msgCount; i++) {
+      messages.put(Integer.toString(i), "Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    ApplicationManager appManager = deployApplication(getApplication());
+    // -1 as the beginOffset signals that the flow should start reading from the last event currently in kafka (so it
+    // should ignore the 5 that were sent before starting the flow.
+    FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, -1));
+    // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
+    TimeUnit.SECONDS.sleep(2);
+
+    // Publish an additional 5 messages to Kafka, the flow should consume them
+    messages = Maps.newHashMap();
+    for (int i = msgCount; i < msgCount + 5; i++) {
+      messages.put(Integer.toString(i), "Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    sinkMetrics.waitForProcessed(5, 10, TimeUnit.SECONDS);
+
+    // Sleep for a while; Even though we sent 10 messages total, we sent only 5 after starting the flow, so
+    // no more messages should be processed
+    TimeUnit.SECONDS.sleep(2);
+    Assert.assertEquals(msgCount, sinkMetrics.getProcessed());
+
+    flowManager.stop();
+    assertDatasetCount(appManager, msgCount);
+  }
+
+  @Test
+  public final void testInvalidStartOffsetLarger() throws Exception {
+    String topic = "testInvalidStartOffsetLarger";
+    // Publish 5 messages to Kafka before starting the flow.
+    int msgCount = 5;
+    Map<String, String> messages = Maps.newHashMap();
+    for (int i = 0; i < msgCount; i++) {
+      messages.put(Integer.toString(i), "Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    ApplicationManager appManager = deployApplication(getApplication());
+    // Invalid start offset as the beginOffset throws OffsetOutOfRangeException on trying to fetch messages from Kafka.
+    // Since the invalid offset is larger than the latest offset available, the flow should start reading from the 
+    // last message currently in kafka (so it should ignore the 5 that were sent before starting the flow).
+    long invalidStartOffset = 12345678901234L;
+    FlowManager flowManager =
+      appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
+    // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
+    TimeUnit.SECONDS.sleep(2);
+
+    // Publish an additional 5 messages to Kafka, the flow should consume them
+    messages = Maps.newHashMap();
+    for (int i = msgCount; i < msgCount + 5; i++) {
+      messages.put(Integer.toString(i), "Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    sinkMetrics.waitForProcessed(5, 10, TimeUnit.SECONDS);
+
+    // Sleep for a while; Even though we sent 10 messages total, we sent only 5 after starting the flow, so
+    // no more messages should be processed
+    TimeUnit.SECONDS.sleep(2);
+    Assert.assertEquals(msgCount, sinkMetrics.getProcessed());
+
+    flowManager.stop();
+    assertDatasetCount(appManager, msgCount);
+  }
+
+  @Test
+  public final void testInvalidStartOffsetSmaller() throws Exception {
+    String topic = "testInvalidStartOffsetSmaller";
+    // Publish 500 messages to Kafka before starting the flow.
+    int msgCount = 500;
+    Map<String, String> messages = Maps.newHashMap();
+    for (int i = 0; i < msgCount; i++) {
+      messages.put(Integer.toString(i), "Test Invalid Start Offset Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    messages.clear();
+    for (int i = msgCount; i < 2 * msgCount; i++) {
+      messages.put(Integer.toString(i), "Test Invalid Start Offset Message " + i);
+    }
+    sendMessage(topic, messages);
+
+    // Wait for more than one minute for some log segments to get deleted.
+    TimeUnit.SECONDS.sleep(80);
+
+    ApplicationManager appManager = deployApplication(getApplication());
+
+    // Setup expected count by reading from earliest offset available
+    FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, -2));
+    // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
+    TimeUnit.SECONDS.sleep(2);
+
+    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    // We don't know exactly how many messages to wait for, waiting for the minimum messages we know we'll fetch.
+    sinkMetrics.waitForProcessed(10, 30, TimeUnit.SECONDS);
+
+    // Sleep for a while to fetch all messages, since we don't exactly know how many messages we are supposed to fetch.
+    TimeUnit.SECONDS.sleep(10);
+    flowManager.stop();
+    
+    long expectedCount = sinkMetrics.getProcessed();
+    LOG.info("Fetched {} messages from Kafka", expectedCount);
+    // Make sure fetched at least one message from Kafka.
+    Assert.assertTrue(expectedCount > 1);
+    // Also, make sure some messages got deleted in Kafka.
+    Assert.assertTrue(expectedCount < 2 * msgCount);
+    
+    // Clear everything, and read again with invalid offset
+    clear();
+
+    appManager = deployApplication(getApplication());
+    // Invalid start offset as the beginOffset throws OffsetOutOfRangeException on trying to fetch messages from Kafka.
+    // Since the invalid offset is smaller than the latest offset available, the flow should start reading from the
+    // earliest message currently in kafka. The total number of events read should be equal to expectedCount
+    // calculated above.
+    long invalidStartOffset = 0L;
+    flowManager =
+      appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
+    // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
+    TimeUnit.SECONDS.sleep(2);
+
+    sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    // We don't know exactly how many messages to wait for, waiting for the minimum messages we know we'll fetch.
+    sinkMetrics.waitForProcessed(expectedCount, 30, TimeUnit.SECONDS);
+
+    // Sleep for a while to fetch all messages
+    TimeUnit.SECONDS.sleep(2);
+    flowManager.stop();
+    Assert.assertEquals(expectedCount, sinkMetrics.getProcessed());
+    assertDatasetCount(appManager, expectedCount);
+  }
+
+  private void assertDatasetCount(ApplicationManager appManager, long expectedMsgCount) {
     // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
     KeyValueTable counter = appManager.<KeyValueTable>getDataSet("counter").get();
-    byte[] startRow = Bytes.toBytes("TestInstances ");
-    CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(startRow, Bytes.stopKeyForPrefix(startRow));
+    CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(null, null);
     try {
       int size = 0;
       while (scanner.hasNext()) {
@@ -209,7 +357,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
         Assert.assertEquals(1L, Bytes.toLong(keyValue.getValue()));
         size++;
       }
-      Assert.assertEquals(msgCount, size);
+      Assert.assertEquals(expectedMsgCount, size);
     } finally {
       scanner.close();
     }
@@ -236,6 +384,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   }
 
   private static Properties generateKafkaConfig(String zkConnectStr, int port, File logDir) {
+    // Note: the log size properties below have been set so that we can have log rollovers
+    // and log deletions in a minute. 
     Properties prop = new Properties();
     prop.setProperty("log.dir", logDir.getAbsolutePath());
     prop.setProperty("port", Integer.toString(port));
@@ -245,17 +395,22 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     prop.setProperty("socket.request.max.bytes", "104857600");
     prop.setProperty("num.partitions", Integer.toString(PARTITIONS));
     prop.setProperty("log.retention.hours", "24");
-    prop.setProperty("log.flush.interval.messages", "10000");
+    prop.setProperty("log.flush.interval.messages", "10");
     prop.setProperty("log.flush.interval.ms", "1000");
-    prop.setProperty("log.segment.bytes", "536870912");
+    prop.setProperty("log.segment.bytes", "100");
     prop.setProperty("zookeeper.connect", zkConnectStr);
     prop.setProperty("zookeeper.connection.timeout.ms", "1000000");
     prop.setProperty("default.replication.factor", "1");
+    prop.setProperty("log.retention.bytes", "1000");
+    prop.setProperty("log.retention.check.interval.ms", "60000");
 
     // These are for Kafka-0.7
     prop.setProperty("brokerid", "1");
     prop.setProperty("zk.connect", zkConnectStr);
     prop.setProperty("zk.connectiontimeout.ms", "1000000");
+    prop.setProperty("log.retention.size", "1000");
+    prop.setProperty("log.cleanup.interval.mins", "1");
+    prop.setProperty("log.file.size", "1000");
 
     return prop;
   }
