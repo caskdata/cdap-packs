@@ -32,6 +32,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import kafka.api.FetchRequest;
+import kafka.common.ErrorMapping;
 import kafka.common.OffsetOutOfRangeException;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.message.ByteBufferMessageSet;
@@ -269,8 +270,13 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
     FetchRequest fetchRequest = new FetchRequest(topicPartition.getTopic(),
                                                  topicPartition.getPartition(), offset, fetchSize);
     try {
-      return new FetchResult(broker, offset, consumer.fetch(fetchRequest));
+      ByteBufferMessageSet messageSet = consumer.fetch(fetchRequest);
+      ErrorMapping.maybeThrowException(messageSet.getErrorCode());
+      return new FetchResult(broker, offset, messageSet);
     } catch (Throwable t) {
+      LOG.error("Failed to fetch messages from broker {}:{} for topic-partition {}-{} and offset {}: ",
+                broker.getHost(), broker.getPort(), topicPartition.getTopic(), topicPartition.getPartition(), offset,
+                t);
       return new FetchResult(broker, offset, t);
     }
   }
