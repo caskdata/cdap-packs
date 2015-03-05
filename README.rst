@@ -10,7 +10,7 @@ programs and tools.
 
 `Twitter-pack: </cdap-twitter-pack/>`_ Twitter Integration
   The Twitter-pack library is designed to ease the CDAP apps development tasks that require integration with Twitter, 
-  such as pulling tweets stream.
+  such as pulling a tweets stream.
 
 `Kafka-Flow-pack: </cdap-kafka-pack/cdap-kafka-flow/>`_ Kafka Flow Integration
   The Kafka-Flow-pack library is designed to ease the CDAP Flow development tasks that require integration with Kafka,
@@ -19,7 +19,7 @@ programs and tools.
 License
 =======
 
-Copyright © 2014 Cask Data, Inc.
+Copyright © 2014-2015 Cask Data, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

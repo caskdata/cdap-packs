@@ -97,7 +97,7 @@ public class BatchETLTest extends TestBase {
   private void testApp(Class<? extends AbstractApplication> app, Map<String, String> args)
     throws TimeoutException, InterruptedException {
 
-    // Simple ETL pipeline: mapreduce job that takes input from table dataset and outputs into dictionary dataset using
+    // Simple ETL pipeline: MapReduce that takes input from table dataset and outputs into dictionary dataset using
     //                      identity function (no actual transform)
 
     ApplicationManager appMngr = deployApplication(app);

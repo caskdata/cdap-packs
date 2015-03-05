@@ -23,7 +23,7 @@ import co.cask.cdap.packs.etl.Record;
 import java.util.Iterator;
 
 /**
- * Defines source for MapReduce job
+ * Defines source for MapReduce
  */
 public interface MapReduceSource<KEY_TYPE, VALUE_TYPE> extends ConfigurableProgram<MapReduceContext> {
   void prepareJob(MapReduceContext context);
