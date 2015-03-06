@@ -24,7 +24,7 @@ import co.cask.cdap.packs.etl.Record;
 import java.util.Iterator;
 
 /**
- * Defines source for MapReduce job
+ * Defines source for MapReduce
  */
 public interface RealtimeSource extends ConfigurableProgram<FlowletContext> {
   Iterator<Record> read(StreamEvent streamEvent) throws Exception;
