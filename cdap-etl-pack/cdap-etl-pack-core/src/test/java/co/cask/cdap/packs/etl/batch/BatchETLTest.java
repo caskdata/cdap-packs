@@ -20,16 +20,16 @@ import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.table.Put;
 import co.cask.cdap.api.dataset.table.Table;
-import co.cask.cdap.test.ApplicationManager;
-import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.MapReduceManager;
-import co.cask.cdap.test.TestBase;
 import co.cask.cdap.packs.etl.Constants;
 import co.cask.cdap.packs.etl.batch.sink.DictionarySink;
 import co.cask.cdap.packs.etl.batch.source.TableSource;
 import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
 import co.cask.cdap.packs.etl.schema.Schema;
 import co.cask.cdap.packs.etl.transform.schema.DefaultSchemaMapping;
+import co.cask.cdap.test.ApplicationManager;
+import co.cask.cdap.test.DataSetManager;
+import co.cask.cdap.test.MapReduceManager;
+import co.cask.cdap.test.TestBase;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import org.junit.Assert;
@@ -38,7 +38,6 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static co.cask.cdap.packs.etl.TestConstants.getInSchema;
 import static co.cask.cdap.packs.etl.TestConstants.getMapping;
@@ -95,14 +94,14 @@ public class BatchETLTest extends TestBase {
   }
 
   private void testApp(Class<? extends AbstractApplication> app, Map<String, String> args)
-    throws TimeoutException, InterruptedException {
+    throws Exception {
 
     // Simple ETL pipeline: MapReduce that takes input from table dataset and outputs into dictionary dataset using
     //                      identity function (no actual transform)
 
     ApplicationManager appMngr = deployApplication(app);
 
-    DataSetManager<Table> table = appMngr.getDataSet("userDetails");
+    DataSetManager<Table> table = getDataset("userDetails");
     table.get().put(new Put("fooKey").add("userId", "1").add("firstName", "alex").add("lastName", "baranau"));
     table.flush();
 
@@ -110,7 +109,7 @@ public class BatchETLTest extends TestBase {
     mr.waitForFinish(2, TimeUnit.MINUTES);
 
     // verify
-    DataSetManager<DictionaryDataSet> dictionary = appMngr.getDataSet(Constants.DICTIONARY_DATASET);
+    DataSetManager<DictionaryDataSet> dictionary = getDataset(Constants.DICTIONARY_DATASET);
     // NOTE: using int value
     Assert.assertEquals("alex", Bytes.toString(dictionary.get().get("users", Bytes.toBytes(1), "first_name")));
     Assert.assertEquals("baranau", Bytes.toString(dictionary.get().get("users", Bytes.toBytes(1), "last_name")));

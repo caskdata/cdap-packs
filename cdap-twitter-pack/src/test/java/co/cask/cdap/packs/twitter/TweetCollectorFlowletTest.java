@@ -19,9 +19,9 @@ package co.cask.cdap.packs.twitter;
 import co.cask.cdap.api.dataset.lib.CloseableIterator;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.lib.ObjectStore;
+import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.RuntimeMetrics;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.TestBase;
 import com.google.common.collect.ImmutableMap;
@@ -58,7 +58,7 @@ public class TweetCollectorFlowletTest extends TestBase {
 
     countMetrics.waitForProcessed(2, 2, TimeUnit.SECONDS);
 
-    DataSetManager<ObjectStore<Tweet>> tweetsDataset = applicationManager.getDataSet("tweets");
+    DataSetManager<ObjectStore<Tweet>> tweetsDataset = getDataset("tweets");
     CloseableIterator<KeyValue<byte[], Tweet>> scan = tweetsDataset.get().scan(null, null);
     Set<Tweet> result = Sets.newHashSet();
     while (scan.hasNext()) {

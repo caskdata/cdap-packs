@@ -34,7 +34,6 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  *
@@ -68,10 +67,10 @@ public class KafkaSinkTest extends BaseKafkaTest {
   }
 
   private void testApp(Class<? extends AbstractApplication> app, Map<String, String> args, String topic, String tableName)
-    throws TimeoutException, InterruptedException {
+    throws Exception {
     ApplicationManager appMngr = deployApplication(app);
 
-    DataSetManager<Table> table = appMngr.getDataSet(tableName);
+    DataSetManager<Table> table = getDataset(tableName);
     table.get().put(new Put("fooKey").add("userId", "55").add("firstName", "jack").add("lastName", "brown"));
     table.get().put(new Put("barKey").add("userId", "49").add("firstName", "jim").add("lastName", "smith"));
     table.get().put(new Put("bazKey").add("userId", "300").add("firstName", "alex").add("lastName", "roberts"));

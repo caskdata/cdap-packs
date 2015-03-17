@@ -18,13 +18,7 @@ package co.cask.cdap.packs.etl.realtime;
 
 import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
-import co.cask.cdap.test.ApplicationManager;
-import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.FlowManager;
-import co.cask.cdap.test.RuntimeMetrics;
-import co.cask.cdap.test.RuntimeStats;
-import co.cask.cdap.test.StreamWriter;
-import co.cask.cdap.test.TestBase;
+import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.packs.etl.Constants;
 import co.cask.cdap.packs.etl.TestConstants;
 import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
@@ -32,6 +26,12 @@ import co.cask.cdap.packs.etl.realtime.sink.DictionarySink;
 import co.cask.cdap.packs.etl.realtime.source.SchemaSource;
 import co.cask.cdap.packs.etl.schema.Schema;
 import co.cask.cdap.packs.etl.transform.schema.DefaultSchemaMapping;
+import co.cask.cdap.test.ApplicationManager;
+import co.cask.cdap.test.DataSetManager;
+import co.cask.cdap.test.FlowManager;
+import co.cask.cdap.test.RuntimeStats;
+import co.cask.cdap.test.StreamWriter;
+import co.cask.cdap.test.TestBase;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import org.junit.Assert;
@@ -90,7 +90,7 @@ public class RealtimeETLTest extends TestBase {
     TimeUnit.SECONDS.sleep(1);
 
     // verify
-    DataSetManager<DictionaryDataSet> dictionary = appMngr.getDataSet(Constants.DICTIONARY_DATASET);
+    DataSetManager<DictionaryDataSet> dictionary = getDataset(Constants.DICTIONARY_DATASET);
     // NOTE: using int value
     Assert.assertEquals(FIRST_NAME, Bytes.toString(dictionary.get().get("users", Bytes.toBytes(1), "first_name")));
     Assert.assertEquals(LAST_NAME, Bytes.toString(dictionary.get().get("users", Bytes.toBytes(1), "last_name")));
