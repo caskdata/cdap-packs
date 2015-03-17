@@ -17,15 +17,15 @@
 package co.cask.cdap.packs.etl.realtime.source;
 
 import co.cask.cdap.api.common.Bytes;
+import co.cask.cdap.api.metrics.RuntimeMetrics;
+import co.cask.cdap.packs.etl.Constants;
+import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
-import co.cask.cdap.test.RuntimeMetrics;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.StreamWriter;
 import co.cask.cdap.test.TestBase;
-import co.cask.cdap.packs.etl.Constants;
-import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -52,7 +52,7 @@ public class MetadataSourceTest extends TestBase {
     TimeUnit.SECONDS.sleep(1);
 
     // verify
-    DataSetManager<DictionaryDataSet> dict = appMngr.getDataSet(Constants.DICTIONARY_DATASET);
+    DataSetManager<DictionaryDataSet> dict = getDataset(Constants.DICTIONARY_DATASET);
     Assert.assertEquals("1024", Bytes.toString(dict.get().get("myDict", "file1".getBytes(Charsets.UTF_8), "size")));
 
     flow.stop();

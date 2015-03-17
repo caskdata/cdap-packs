@@ -20,27 +20,24 @@ import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.table.Put;
 import co.cask.cdap.api.dataset.table.Table;
+import co.cask.cdap.packs.etl.Constants;
+import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.MapReduceManager;
 import co.cask.cdap.test.TestBase;
-import co.cask.cdap.packs.etl.Constants;
-import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  *
  */
 public class DictionarySinkTest extends TestBase {
-  private static final Gson GSON = new Gson();
 
   @Test
   public void testConfiguredByArgs() throws Exception {
@@ -63,14 +60,14 @@ public class DictionarySinkTest extends TestBase {
 
   private void testApp(Class<? extends AbstractApplication> app,
                        Map<String, String> args, String tableName, String dictionaryName)
-    throws TimeoutException, InterruptedException {
+    throws Exception {
 
     // simple etl: mr job takes input from table dataset and outputs into dictionary dataset using
     //                      identity function (no actual transform)
 
     ApplicationManager appMngr = deployApplication(app);
 
-    DataSetManager<Table> table = appMngr.getDataSet(tableName);
+    DataSetManager<Table> table = getDataset(tableName);
     table.get().put(new Put("fooKey").add("userId", "23").add("firstName", "jack").add("lastName", "brown"));
     table.flush();
 
@@ -78,7 +75,7 @@ public class DictionarySinkTest extends TestBase {
     mr.waitForFinish(2, TimeUnit.MINUTES);
 
     // verify
-    DataSetManager<DictionaryDataSet> dictionary = appMngr.getDataSet(Constants.DICTIONARY_DATASET);
+    DataSetManager<DictionaryDataSet> dictionary = getDataset(Constants.DICTIONARY_DATASET);
     // NOTE: using int value
     Assert.assertEquals(23, Bytes.toInt(dictionary.get().get(dictionaryName, Bytes.toBytes(23), "user_id")));
     Assert.assertEquals("jack", Bytes.toString(dictionary.get().get(dictionaryName, Bytes.toBytes(23), "first_name")));

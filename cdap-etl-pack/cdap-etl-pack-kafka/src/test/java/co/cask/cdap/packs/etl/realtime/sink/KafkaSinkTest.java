@@ -17,6 +17,7 @@
 package co.cask.cdap.packs.etl.realtime.sink;
 
 import co.cask.cdap.api.app.AbstractApplication;
+import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.packs.etl.Constants;
 import co.cask.cdap.packs.etl.batch.source.TableSource;
 import co.cask.cdap.packs.etl.kafka.BaseKafkaTest;
@@ -24,7 +25,6 @@ import co.cask.cdap.packs.etl.schema.Schema;
 import co.cask.cdap.packs.etl.transform.schema.DefaultSchemaMapping;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.FlowManager;
-import co.cask.cdap.test.RuntimeMetrics;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.StreamWriter;
 import com.google.common.collect.ImmutableMap;
