@@ -23,6 +23,7 @@ import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.lib.KeyValueTable;
 import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.test.ApplicationManager;
+import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.TestBase;
@@ -347,7 +348,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
 
   private void assertDatasetCount(ApplicationManager appManager, long expectedMsgCount) throws Exception {
     // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
-    KeyValueTable counter = (KeyValueTable) getDataset("counter").get();
+    DataSetManager<KeyValueTable> datasetManager = getDataset("counter");
+    KeyValueTable counter = datasetManager.get();
     CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(null, null);
     try {
       int size = 0;
