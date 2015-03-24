@@ -18,12 +18,12 @@ package co.cask.cdap.packs.etl.realtime.sink;
 
 import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
+import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.packs.etl.Constants;
 import co.cask.cdap.packs.etl.hbase.HBase96Test;
 import co.cask.cdap.packs.etl.hbase.HBaseTestBase;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.FlowManager;
-import co.cask.cdap.test.RuntimeMetrics;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.StreamWriter;
 import co.cask.cdap.test.TestBase;

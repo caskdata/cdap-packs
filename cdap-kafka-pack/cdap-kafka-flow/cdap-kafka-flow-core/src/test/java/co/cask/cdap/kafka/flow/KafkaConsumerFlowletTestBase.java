@@ -21,9 +21,10 @@ import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.lib.CloseableIterator;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.lib.KeyValueTable;
+import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.test.ApplicationManager;
+import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
-import co.cask.cdap.test.RuntimeMetrics;
 import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.TestBase;
 import com.google.common.base.Throwables;
@@ -47,7 +48,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Abstract base class for writing a Kafka consuming flowlet test.
@@ -170,7 +170,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   }
 
   @Test
-  public void testChangeInstances() throws TimeoutException, InterruptedException {
+  public void testChangeInstances() throws Exception {
     // Start the flow with one instance source.
     String topic = "testChangeInstances";
     ApplicationManager appManager = deployApplication(getApplication());
@@ -346,9 +346,10 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     assertDatasetCount(appManager, expectedCount);
   }
 
-  private void assertDatasetCount(ApplicationManager appManager, long expectedMsgCount) {
+  private void assertDatasetCount(ApplicationManager appManager, long expectedMsgCount) throws Exception {
     // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
-    KeyValueTable counter = appManager.<KeyValueTable>getDataSet("counter").get();
+    DataSetManager<KeyValueTable> datasetManager = getDataset("counter");
+    KeyValueTable counter = datasetManager.get();
     CloseableIterator<KeyValue<byte[], byte[]>> scanner = counter.scan(null, null);
     try {
       int size = 0;
