@@ -55,11 +55,11 @@ public class DictionaryOpsAppTest extends TestBase {
   }
 
   @Test
-  public void testRetrieveDictionaryValue() throws InterruptedException, IOException {
+  public void testRetrieveDictionaryValue() throws Exception {
     // Deploy the DictionaryOpsApp
     ApplicationManager appManager = deployApplication(DictionaryOpsApp.class);
 
-    DataSetManager<DictionaryDataSet> dictionary = appManager.getDataSet(Constants.DICTIONARY_DATASET);
+    DataSetManager<DictionaryDataSet> dictionary = getDataset(Constants.DICTIONARY_DATASET);
     dictionary.get().write(DICT_SHAPES, Bytes.toBytes("triangle"),
                            ImmutableMap.of(DICT_SHAPES_FIELD_AREA, FieldType.INT.toBytes(10),
                                            DICT_SHAPES_FIELD_COLOR, FieldType.STRING.toBytes("GREEN"),
