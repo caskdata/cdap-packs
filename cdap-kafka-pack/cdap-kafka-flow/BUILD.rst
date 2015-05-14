@@ -5,7 +5,7 @@ Kafka Flowlet Library for CDAP
 
 Building the Library
 ====================
-The project is a multi-module maven project. It requires Maven 3.0+ and Java SDK 6+ to build.
+The project is a multi-module maven project. It requires Maven 3.1+ and Java SDK 7 to build.
 
 
 Prerequisites
