@@ -25,7 +25,7 @@ import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.RuntimeStats;
-import co.cask.cdap.test.StreamWriter;
+import co.cask.cdap.test.StreamManager;
 import co.cask.cdap.test.TestBase;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -54,10 +54,10 @@ public class ScriptableSchemaMappingAppTest extends TestBase {
     dict.get().write("users", Bytes.toBytes(55), ImmutableMap.of("firstName", Bytes.toBytes("jack")));
     dict.flush();
 
-    StreamWriter sw = appMngr.getStreamWriter("usersStream");
+    StreamManager sw = getStreamManager("usersStream");
     sw.send("55");
 
-    FlowManager flow = appMngr.startFlow("ETLFlow", args);
+    FlowManager flow = appMngr.getFlowManager("ETLFlow").start(args);
     RuntimeMetrics terminalMetrics = RuntimeStats.getFlowletMetrics(app.getSimpleName(), "ETLFlow", "ETLFlowlet");
     terminalMetrics.waitForinput(1, 5, TimeUnit.SECONDS);
     TimeUnit.SECONDS.sleep(5);

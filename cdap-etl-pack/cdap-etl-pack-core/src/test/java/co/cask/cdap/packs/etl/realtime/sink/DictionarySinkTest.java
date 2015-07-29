@@ -25,7 +25,7 @@ import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.RuntimeStats;
-import co.cask.cdap.test.StreamWriter;
+import co.cask.cdap.test.StreamManager;
 import co.cask.cdap.test.TestBase;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
@@ -58,10 +58,10 @@ public class DictionarySinkTest extends TestBase {
 
     ApplicationManager appMngr = deployApplication(app);
 
-    StreamWriter sw = appMngr.getStreamWriter("filesStream");
+    StreamManager sw = getStreamManager("filesStream");
     sw.send(ImmutableMap.of("fname", "file1", "size", "1024"), "ignored_body");
 
-    FlowManager flow = appMngr.startFlow("ETLFlow", args);
+    FlowManager flow = appMngr.getFlowManager("ETLFlow").start(args);
     RuntimeMetrics terminalMetrics = RuntimeStats.getFlowletMetrics(app.getSimpleName(), "ETLFlow", "ETLFlowlet");
     terminalMetrics.waitForinput(1, 5, TimeUnit.SECONDS);
     TimeUnit.SECONDS.sleep(1);

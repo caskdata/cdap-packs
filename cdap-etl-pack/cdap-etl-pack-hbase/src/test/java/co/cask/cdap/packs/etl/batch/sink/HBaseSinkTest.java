@@ -86,11 +86,11 @@ public class HBaseSinkTest extends TestBase {
 
     ApplicationManager appMngr = deployApplication(app);
 
-    DataSetManager<Table> table = appMngr.getDataSet("userDetails3");
+    DataSetManager<Table> table = getDataset("userDetails3");
     table.get().put(new Put("fooKey").add("userId", "55").add("firstName", "jack").add("lastName", "brown"));
     table.flush();
 
-    MapReduceManager mr = appMngr.startMapReduce("ETLMapReduce", args);
+    MapReduceManager mr = appMngr.getMapReduceManager("ETLMapReduce").start(args);
     mr.waitForFinish(2, TimeUnit.MINUTES);
 
     // verify

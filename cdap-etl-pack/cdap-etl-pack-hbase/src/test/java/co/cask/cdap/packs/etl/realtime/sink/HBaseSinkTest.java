@@ -25,7 +25,7 @@ import co.cask.cdap.packs.etl.hbase.HBaseTestBase;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.RuntimeStats;
-import co.cask.cdap.test.StreamWriter;
+import co.cask.cdap.test.StreamManager;
 import co.cask.cdap.test.TestBase;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -91,10 +91,10 @@ public class HBaseSinkTest extends TestBase {
 
     ApplicationManager appMngr = deployApplication(app);
 
-    StreamWriter sw = appMngr.getStreamWriter(streamName);
+    StreamManager sw = getStreamManager(streamName);
     sw.send("55,jack,brown");
 
-    FlowManager flow = appMngr.startFlow("ETLFlow", args);
+    FlowManager flow = appMngr.getFlowManager("ETLFlow").start(args);
     RuntimeMetrics terminalMetrics = RuntimeStats.getFlowletMetrics(app.getSimpleName(), "ETLFlow", "ETLFlowlet");
     terminalMetrics.waitForinput(1, 20, TimeUnit.SECONDS);
     TimeUnit.SECONDS.sleep(1);

@@ -105,7 +105,7 @@ public class BatchETLTest extends TestBase {
     table.get().put(new Put("fooKey").add("userId", "1").add("firstName", "alex").add("lastName", "baranau"));
     table.flush();
 
-    MapReduceManager mr = appMngr.startMapReduce("ETLMapReduce", args);
+    MapReduceManager mr = appMngr.getMapReduceManager("ETLMapReduce").start(args);
     mr.waitForFinish(2, TimeUnit.MINUTES);
 
     // verify

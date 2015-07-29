@@ -76,7 +76,7 @@ public class KafkaSinkTest extends BaseKafkaTest {
     table.get().put(new Put("bazKey").add("userId", "300").add("firstName", "alex").add("lastName", "roberts"));
     table.flush();
 
-    MapReduceManager mr = appMngr.startMapReduce("ETLMapReduce", args);
+    MapReduceManager mr = appMngr.getMapReduceManager("ETLMapReduce").start(args);
     mr.waitForFinish(2, TimeUnit.MINUTES);
 
     Map<Integer, Map<String, byte[]>> expected = ImmutableMap.of(

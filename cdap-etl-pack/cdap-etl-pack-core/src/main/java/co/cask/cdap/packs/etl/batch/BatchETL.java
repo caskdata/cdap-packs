@@ -17,6 +17,7 @@
 package co.cask.cdap.packs.etl.batch;
 
 import co.cask.cdap.api.data.stream.Stream;
+import co.cask.cdap.internal.schedule.TimeSchedule;
 import co.cask.cdap.packs.etl.Constants;
 import co.cask.cdap.packs.etl.DatasetsTrackingApplication;
 import co.cask.cdap.packs.etl.batch.sink.MapReduceSink;
@@ -43,8 +44,7 @@ public class BatchETL extends DatasetsTrackingApplication {
 
     ETLMapReduce mapReduce = new ETLMapReduce(configurer.source,
                                               configurer.transformation,
-                                              configurer.sink,
-                                              getDatasets());
+                                              configurer.sink);
 
     // todo: this seems redundant: we add it as part of workflow
     addMapReduce(mapReduce);
@@ -52,7 +52,9 @@ public class BatchETL extends DatasetsTrackingApplication {
 
     long intervalInMinutes = 10;
     String cronEntry = "0/" + intervalInMinutes + " * * * *";
-    scheduleWorkflow("TenMinuteSchedule", cronEntry, ETLMapReduceWorkflow.NAME);
+
+    scheduleWorkflow(new TimeSchedule("TenMinuteSchedule", "Schedule that runs every ten minutes.", cronEntry),
+                     ETLMapReduceWorkflow.NAME);
   }
 
   protected void configure(Configurer configurer) {
