@@ -30,8 +30,6 @@ import co.cask.cdap.test.TestBase;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.apache.twill.internal.kafka.EmbeddedKafkaServer;
-import org.apache.twill.internal.utils.Networks;
 import org.apache.twill.internal.zookeeper.InMemoryZKServer;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -61,23 +59,16 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   protected static final int PARTITIONS = 6;
 
   protected static InMemoryZKServer zkServer;
-  protected static EmbeddedKafkaServer kafkaServer;
   protected static int kafkaPort;
 
   @BeforeClass
   public static void initialize() throws IOException {
     zkServer = InMemoryZKServer.builder().setDataDir(TMP_FOLDER.newFolder()).build();
     zkServer.startAndWait();
-
-    kafkaPort = Networks.getRandomPort();
-    kafkaServer = new EmbeddedKafkaServer(generateKafkaConfig(zkServer.getConnectionStr(),
-                                                              kafkaPort, TMP_FOLDER.newFolder()));
-    kafkaServer.startAndWait();
   }
 
   @AfterClass
   public static void cleanup() {
-    kafkaServer.stopAndWait();
     zkServer.stopAndWait();
   }
 
@@ -384,7 +375,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     throw Throwables.propagate(failure);
   }
 
-  private static Properties generateKafkaConfig(String zkConnectStr, int port, File logDir) {
+  protected static Properties generateKafkaConfig(String zkConnectStr, int port, File logDir) {
     // Note: the log size properties below have been set so that we can have log rollovers
     // and log deletions in a minute. 
     Properties prop = new Properties();
