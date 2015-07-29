@@ -51,7 +51,7 @@
     <netty.http.version>0.4.0</netty.http.version>
     <rhino.version>1.7R3</rhino.version>
     <tephra.version>0.3.2</tephra.version>
-    <twill.version>0.6.0</twill.version>
+    <twill.version>0.6.0-incubating</twill.version>
 
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
