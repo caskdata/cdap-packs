@@ -75,7 +75,7 @@ public class DictionaryOpsAppTest extends TestBase {
     dictionary.flush();
 
     // Start the DictionaryOpsService
-    ServiceManager serviceManager = appManager.startService(DictionaryOpsService.SERVICE_NAME);
+    ServiceManager serviceManager = appManager.getServiceManager(DictionaryOpsService.SERVICE_NAME).start();
 
     // Wait service startup
     serviceStatusCheck(serviceManager, true);

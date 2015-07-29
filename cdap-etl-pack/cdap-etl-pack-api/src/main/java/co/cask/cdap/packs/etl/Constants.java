@@ -19,7 +19,7 @@ package co.cask.cdap.packs.etl;
 /**
  * ETL framework cosntants
  */
-public final class Constants  {
+public final class Constants {
   // todo: shorten constants names
 
   /** Name of the dictionary dataset */
