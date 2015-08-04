@@ -18,7 +18,9 @@ package co.cask.cdap.kafka.flow;
 
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.apache.twill.internal.kafka.EmbeddedKafkaServer;
 import org.apache.twill.internal.kafka.client.ZKKafkaClientService;
+import org.apache.twill.internal.utils.Networks;
 import org.apache.twill.kafka.client.Compression;
 import org.apache.twill.kafka.client.KafkaClientService;
 import org.apache.twill.kafka.client.KafkaPublisher;
@@ -37,9 +39,15 @@ public class Kafka08ConsumerFlowletTest extends KafkaConsumerFlowletTestBase {
 
   private static ZKClientService zkClient;
   private static KafkaClientService kafkaClient;
+  private static EmbeddedKafkaServer kafkaServer;
 
   @BeforeClass
   public static void setup() throws IOException {
+    kafkaPort = Networks.getRandomPort();
+    kafkaServer = new EmbeddedKafkaServer(generateKafkaConfig(zkServer.getConnectionStr(), kafkaPort,
+                                                              TMP_FOLDER.newFolder()));
+    kafkaServer.startAndWait();
+
     zkClient = ZKClientService.Builder.of(zkServer.getConnectionStr()).build();
     zkClient.startAndWait();
 

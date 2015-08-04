@@ -19,7 +19,7 @@ package co.cask.cdap.packs.etl.transform.script;
 import co.cask.cdap.packs.etl.Record;
 import co.cask.cdap.packs.etl.dictionary.DictionaryDataSet;
 import co.cask.cdap.packs.etl.schema.FieldType;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.mockito.Matchers.eq;

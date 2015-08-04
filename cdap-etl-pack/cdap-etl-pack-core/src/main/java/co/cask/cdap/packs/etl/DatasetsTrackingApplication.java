@@ -16,6 +16,7 @@
 
 package co.cask.cdap.packs.etl;
 
+import co.cask.cdap.api.Config;
 import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.dataset.Dataset;
 import co.cask.cdap.api.dataset.DatasetProperties;
@@ -26,7 +27,7 @@ import java.util.Set;
 /**
  * Helps define {@link AbstractApplication} class that tracks all datasets added to it.
  */
-public abstract class DatasetsTrackingApplication extends AbstractApplication {
+public abstract class DatasetsTrackingApplication extends AbstractApplication<Config> {
   // we need to call useDataset() in MR & Flow - otherwise it will not work, hence this code
   // todo: check that we have to have it
   private final Set<String> datasets = Sets.newHashSet();

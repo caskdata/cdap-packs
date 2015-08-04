@@ -27,17 +27,14 @@ import co.cask.cdap.packs.etl.batch.source.MapReduceSource;
 import co.cask.cdap.packs.etl.transform.Transformation;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Map-reduce program that performs ETL work
@@ -48,17 +45,11 @@ public class ETLMapReduce extends AbstractMapReduce {
   private MapReduceSource source = null;
   private Transformation transformation = null;
   private MapReduceSink sink = null;
-  private Set<String> datasets = Collections.emptySet();
 
-  public ETLMapReduce() {
-  }
-
-  public ETLMapReduce(MapReduceSource source, Transformation transformation,
-                      MapReduceSink sink, Set<String> datasets) {
+  public ETLMapReduce(MapReduceSource source, Transformation transformation, MapReduceSink sink) {
     this.source = source;
     this.transformation = transformation;
     this.sink = sink;
-    this.datasets = datasets == null ? Collections.<String>emptySet() : datasets;
   }
 
   @Override
@@ -80,8 +71,6 @@ public class ETLMapReduce extends AbstractMapReduce {
     setName(NAME);
     setDescription("");
     setProperties(args);
-    useDatasets(ImmutableList.of(Constants.DICTIONARY_DATASET, Constants.ETL_META_DATASET));
-    useDatasets(datasets);
   }
 
   @Override

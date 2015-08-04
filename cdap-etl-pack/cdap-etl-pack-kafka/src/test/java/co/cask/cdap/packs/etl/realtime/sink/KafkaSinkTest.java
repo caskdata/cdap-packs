@@ -26,7 +26,7 @@ import co.cask.cdap.packs.etl.transform.schema.DefaultSchemaMapping;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.RuntimeStats;
-import co.cask.cdap.test.StreamWriter;
+import co.cask.cdap.test.StreamManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.junit.Test;
@@ -74,12 +74,12 @@ public class KafkaSinkTest extends BaseKafkaTest {
 
     ApplicationManager appMngr = deployApplication(app);
 
-    StreamWriter sw = appMngr.getStreamWriter(stream);
+    StreamManager sw = getStreamManager(stream);
     sw.send("55,jack,brown");
     sw.send("49,jim,smith");
     sw.send("300,alex,roberts");
 
-    FlowManager flow = appMngr.startFlow("ETLFlow", args);
+    FlowManager flow = appMngr.getFlowManager("ETLFlow").start(args);
     RuntimeMetrics terminalMetrics = RuntimeStats.getFlowletMetrics(app.getSimpleName(), "ETLFlow", "ETLFlowlet");
     terminalMetrics.waitForinput(2, 10, TimeUnit.SECONDS);
     TimeUnit.SECONDS.sleep(1);

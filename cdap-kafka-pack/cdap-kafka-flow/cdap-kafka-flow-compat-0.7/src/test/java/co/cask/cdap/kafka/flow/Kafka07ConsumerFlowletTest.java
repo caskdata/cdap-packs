@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import kafka.javaapi.producer.Producer;
 import kafka.javaapi.producer.ProducerData;
 import kafka.producer.ProducerConfig;
+import org.apache.twill.internal.utils.Networks;
 import org.apache.twill.zookeeper.ZKClientService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -36,9 +37,14 @@ import java.util.Properties;
 public class Kafka07ConsumerFlowletTest extends KafkaConsumerFlowletTestBase {
 
   private static ZKClientService zkClient;
+  private static EmbeddedKafkaServer kafkaServer;
 
   @BeforeClass
   public static void setup() throws IOException {
+    kafkaPort = Networks.getRandomPort();
+    kafkaServer = new EmbeddedKafkaServer(generateKafkaConfig(zkServer.getConnectionStr(), kafkaPort,
+                                                              TMP_FOLDER.newFolder()));
+    kafkaServer.startAndWait();
     zkClient = ZKClientService.Builder.of(zkServer.getConnectionStr()).build();
     zkClient.startAndWait();
   }
@@ -46,6 +52,7 @@ public class Kafka07ConsumerFlowletTest extends KafkaConsumerFlowletTestBase {
   @AfterClass
   public static void tearDown() {
     zkClient.stopAndWait();
+    kafkaServer.stopAndWait();
   }
 
   @Override
