@@ -22,7 +22,7 @@
 
   <groupId>co.cask.cdap</groupId>
   <artifactId>cdap-kafka-flow</artifactId>
-  <version>0.7.0-SNAPSHOT</version>
+  <version>0.7.0</version>
   <packaging>pom</packaging>
   <name>CDAP Kafka Flow Pack</name>
   <description>Data Application Platform for Hadoop: Kafka Flow Pack</description>
@@ -90,7 +90,7 @@
   </modules>
 
   <properties>
-    <cdap.version>3.1.0-SNAPSHOT</cdap.version>
+    <cdap.version>3.1.0</cdap.version>
     <junit.version>4.11</junit.version>
     <kafka.version>0.8.1.1</kafka.version>
     <logback.version>1.1.2</logback.version>
