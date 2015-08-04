@@ -20,7 +20,7 @@
 
   <groupId>co.cask.cdap.packs</groupId>
   <artifactId>cdap-etl-pack</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
+  <version>${cdap.etl.pack.version}</version>
   <name>CDAP ETL Pack</name>
   <description>
     CDAP ETL Pack is a core for building simple ETL pipelines and as well as collection of different sources,
@@ -39,7 +39,8 @@
   </modules>
 
   <properties>
-    <cdap.version>3.1.0-SNAPSHOT</cdap.version>
+    <cdap.etl.pack.version>1.6.0</cdap.etl.pack.version>
+    <cdap.version>3.1.0</cdap.version>
     <hadoop.version>2.3.0</hadoop.version>
     <hive.version>0.13.0</hive.version>
     <hbase.version>0.96.0-hadoop2</hbase.version>
