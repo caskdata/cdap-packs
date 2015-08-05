@@ -39,8 +39,8 @@
   </modules>
 
   <properties>
-    <cdap.etl.pack.version>1.6.0</cdap.etl.pack.version>
-    <cdap.version>3.1.0</cdap.version>
+    <cdap.etl.pack.version>1.7.0-SNAPSHOT</cdap.etl.pack.version>
+    <cdap.version>3.2.0-SNAPSHOT</cdap.version>
     <hadoop.version>2.3.0</hadoop.version>
     <hive.version>0.13.0</hive.version>
     <hbase.version>0.96.0-hadoop2</hbase.version>
