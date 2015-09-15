@@ -23,7 +23,7 @@
   <parent>
     <groupId>co.cask.cdap.packs</groupId>
     <artifactId>cdap-etl-pack</artifactId>
-    <version>${cdap.etl.pack.version}</version>
+    <version>1.8.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cdap-etl-pack-app</artifactId>
