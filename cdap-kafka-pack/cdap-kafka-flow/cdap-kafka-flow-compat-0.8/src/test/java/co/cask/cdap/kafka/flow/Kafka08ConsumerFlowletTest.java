@@ -59,6 +59,7 @@ public class Kafka08ConsumerFlowletTest extends KafkaConsumerFlowletTestBase {
   public static void tearDown() {
     kafkaClient.stopAndWait();
     zkClient.stopAndWait();
+    kafkaServer.stopAndWait();
   }
 
   @Override
