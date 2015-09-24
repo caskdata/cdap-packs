@@ -22,10 +22,10 @@ import co.cask.cdap.api.dataset.lib.CloseableIterator;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.dataset.lib.KeyValueTable;
 import co.cask.cdap.api.metrics.RuntimeMetrics;
+import co.cask.cdap.proto.Id;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
-import co.cask.cdap.test.RuntimeStats;
 import co.cask.cdap.test.TestBase;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -74,7 +74,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
 
   @After
   public void cleanUpMetrics() throws Exception {
-    RuntimeStats.resetAll();
+    getMetricsManager().resetAll();
     clear();
   }
 
@@ -119,7 +119,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   public final void testFlowlet() throws Exception {
     String topic = "testTopic";
     ApplicationManager appManager = deployApplication(getApplication());
-    FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false));
+    FlowManager flowManager =
+      appManager.getFlowManager("KafkaConsumingFlow").start(getRuntimeArgs(topic, PARTITIONS, false));
 
     // Publish 5 messages to Kafka, the flow should consume them
     int msgCount = 5;
@@ -129,7 +130,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     }
     sendMessage(topic, messages);
 
-    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    RuntimeMetrics sinkMetrics = getMetricsManager().getFlowletMetrics(
+      Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
     sinkMetrics.waitForProcessed(msgCount, 10, TimeUnit.SECONDS);
 
     // Sleep for a while; no more messages should be processed
@@ -146,7 +148,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     sendMessage(topic, messages);
 
     // Clear stats and start the flow again (using ZK to discover broker this time)
-    RuntimeStats.resetAll();
+    getMetricsManager().resetAll();
     flowManager = startFlowWithRetry(appManager, "KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, true), 5);
 
     // Wait for 2 messages. This should be ok.
@@ -157,7 +159,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     Assert.assertEquals(2, sinkMetrics.getProcessed());
 
     flowManager.stop();
-    assertDatasetCount(appManager, msgCount);
+    assertDatasetCount(msgCount);
   }
 
   @Test
@@ -165,7 +167,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     // Start the flow with one instance source.
     String topic = "testChangeInstances";
     ApplicationManager appManager = deployApplication(getApplication());
-    FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false));
+    FlowManager flowManager =
+      appManager.getFlowManager("KafkaConsumingFlow").start(getRuntimeArgs(topic, PARTITIONS, false));
 
     // Publish 100 messages. Expect each partition to get some of the messages.
     int msgCount = 100;
@@ -174,7 +177,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     }
 
     // Should received 100 messages
-    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    RuntimeMetrics sinkMetrics = getMetricsManager().getFlowletMetrics(
+      Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
     sinkMetrics.waitForProcessed(msgCount, 10, TimeUnit.SECONDS);
 
     // Scale to 3 instances
@@ -190,7 +194,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     sinkMetrics.waitForProcessed(msgCount, 10, TimeUnit.SECONDS);
 
     flowManager.stop();
-    assertDatasetCount(appManager, msgCount);
+    assertDatasetCount(msgCount);
   }
 
   @Test
@@ -207,7 +211,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     ApplicationManager appManager = deployApplication(getApplication());
     // -1 as the beginOffset signals that the flow should start reading from the last event currently in kafka (so it
     // should ignore the 5 that were sent before starting the flow.
-    FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, -1));
+    FlowManager flowManager =
+      appManager.getFlowManager("KafkaConsumingFlow").start(getRuntimeArgs(topic, PARTITIONS, false, -1));
     // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
     TimeUnit.SECONDS.sleep(2);
 
@@ -218,7 +223,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     }
     sendMessage(topic, messages);
 
-    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    RuntimeMetrics sinkMetrics = getMetricsManager().getFlowletMetrics(
+      Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
     sinkMetrics.waitForProcessed(5, 10, TimeUnit.SECONDS);
 
     // Sleep for a while; Even though we sent 10 messages total, we sent only 5 after starting the flow, so
@@ -227,7 +233,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     Assert.assertEquals(msgCount, sinkMetrics.getProcessed());
 
     flowManager.stop();
-    assertDatasetCount(appManager, msgCount);
+    assertDatasetCount(msgCount);
   }
 
   @Test
@@ -247,7 +253,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     // last message currently in kafka (so it should ignore the 5 that were sent before starting the flow).
     long invalidStartOffset = 12345678901234L;
     FlowManager flowManager =
-      appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
+      appManager.getFlowManager("KafkaConsumingFlow")
+        .start(getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
     // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
     TimeUnit.SECONDS.sleep(2);
 
@@ -258,7 +265,8 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     }
     sendMessage(topic, messages);
 
-    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    RuntimeMetrics sinkMetrics = getMetricsManager().getFlowletMetrics(
+      Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
     sinkMetrics.waitForProcessed(5, 10, TimeUnit.SECONDS);
 
     // Sleep for a while; Even though we sent 10 messages total, we sent only 5 after starting the flow, so
@@ -267,7 +275,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     Assert.assertEquals(msgCount, sinkMetrics.getProcessed());
 
     flowManager.stop();
-    assertDatasetCount(appManager, msgCount);
+    assertDatasetCount(msgCount);
   }
 
   @Test
@@ -293,11 +301,13 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     ApplicationManager appManager = deployApplication(getApplication());
 
     // Setup expected count by reading from earliest offset available
-    FlowManager flowManager = appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, -2));
+    FlowManager flowManager =
+      appManager.getFlowManager("KafkaConsumingFlow").start(getRuntimeArgs(topic, PARTITIONS, false, -2));
     // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
     TimeUnit.SECONDS.sleep(2);
 
-    RuntimeMetrics sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    RuntimeMetrics sinkMetrics = getMetricsManager().getFlowletMetrics(
+      Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
     // We don't know exactly how many messages to wait for, waiting for the minimum messages we know we'll fetch.
     sinkMetrics.waitForProcessed(10, 30, TimeUnit.SECONDS);
 
@@ -322,11 +332,13 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     // calculated above.
     long invalidStartOffset = 0L;
     flowManager =
-      appManager.startFlow("KafkaConsumingFlow", getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
+      appManager.getFlowManager("KafkaConsumingFlow")
+        .start(getRuntimeArgs(topic, PARTITIONS, false, invalidStartOffset));
     // Give the flow some time to startup and initialize. It needs some time even after FlowManager#isRunning is true.
     TimeUnit.SECONDS.sleep(2);
 
-    sinkMetrics = RuntimeStats.getFlowletMetrics("KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+    sinkMetrics = getMetricsManager().getFlowletMetrics(
+      Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
     // We don't know exactly how many messages to wait for, waiting for the minimum messages we know we'll fetch.
     sinkMetrics.waitForProcessed(expectedCount, 30, TimeUnit.SECONDS);
 
@@ -334,10 +346,10 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     TimeUnit.SECONDS.sleep(2);
     flowManager.stop();
     Assert.assertEquals(expectedCount, sinkMetrics.getProcessed());
-    assertDatasetCount(appManager, expectedCount);
+    assertDatasetCount(expectedCount);
   }
 
-  private void assertDatasetCount(ApplicationManager appManager, long expectedMsgCount) throws Exception {
+  private void assertDatasetCount(long expectedMsgCount) throws Exception {
     // Verify using the Dataset counter table; it keeps a count for each message that the sink flowlet received
     DataSetManager<KeyValueTable> datasetManager = getDataset("counter");
     KeyValueTable counter = datasetManager.get();
@@ -363,7 +375,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
         if (failure != null) {
           TimeUnit.SECONDS.sleep(1);
         }
-        return appManager.startFlow(flowId, args);
+        return appManager.getFlowManager(flowId).start(args);
       } catch (InterruptedException e) {
         throw Throwables.propagate(e);
       } catch (Throwable t) {
