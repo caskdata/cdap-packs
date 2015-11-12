@@ -22,8 +22,7 @@ import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.data.schema.UnsupportedTypeException;
 import co.cask.cdap.api.dataset.lib.ObjectStore;
 import co.cask.cdap.api.dataset.lib.ObjectStores;
-import co.cask.cdap.api.flow.Flow;
-import co.cask.cdap.api.flow.FlowSpecification;
+import co.cask.cdap.api.flow.AbstractFlow;
 import co.cask.cdap.api.flow.flowlet.AbstractFlowlet;
 
 import java.util.UUID;
@@ -42,18 +41,14 @@ public class TweetCollectorApp extends AbstractApplication {
     }
   }
 
-  static final class TweetCollectorFlow implements Flow {
+  static final class TweetCollectorFlow extends AbstractFlow {
     @Override
-    public FlowSpecification configure() {
-      return FlowSpecification.Builder.with()
-        .setName("TweetCollectorFlow")
-        .setDescription("Flow to test TweetCollectorFlowlet")
-        .withFlowlets()
-          .add("collector", new TweetCollectorFlowlet())
-          .add("persistor", new TweetPersistorFlowlet())
-        .connect()
-          .from("collector").to("persistor")
-        .build();
+    public void configure() {
+      setName("TweetCollectorFlow");
+      setDescription("Flow to test TweetCollectorFlowlet");
+      addFlowlet("collector", new TweetCollectorFlowlet());
+      addFlowlet("persistor", new TweetPersistorFlowlet());
+      connect("collector", "persistor");
     }
   }
 

@@ -108,6 +108,8 @@ public class TweetCollectorFlowlet extends AbstractFlowlet {
   public static final String ARG_TWITTER4J_OAUTH_ACCESS_TOKEN = "twitter4j.oauth.accessToken";
   public static final String ARG_TWITTER4J_OAUTH_ACCESS_TOKEN_SECRET = "twitter4j.oauth.accessTokenSecret";
 
+  private String name;
+
   private Metrics metrics;
   private OutputEmitter<Tweet> output;
 
@@ -123,6 +125,14 @@ public class TweetCollectorFlowlet extends AbstractFlowlet {
     this (DEFAULT_INTERNAL_QUEUE_SIZE, DEFAULT_EMIT_BATCH_MAX_SIZE);
   }
 
+  @Override
+  protected void configure() {
+    super.configure();
+    if (name != null) {
+      setName(name);
+    }
+  }
+
   public TweetCollectorFlowlet(String name) {
     this(name, DEFAULT_INTERNAL_QUEUE_SIZE, DEFAULT_EMIT_BATCH_MAX_SIZE);
   }
@@ -134,9 +144,8 @@ public class TweetCollectorFlowlet extends AbstractFlowlet {
   }
 
   public TweetCollectorFlowlet(String name, int internalQueueSize, int emitBatchMaxSize) {
-    super(name);
-    this.internalQueueSize = internalQueueSize;
-    this.emitBatchMaxSize = emitBatchMaxSize;
+    this(internalQueueSize, emitBatchMaxSize);
+    this.name = name;
   }
 
   @Override

@@ -22,7 +22,7 @@ import co.cask.cdap.api.dataset.lib.ObjectStore;
 import co.cask.cdap.api.metrics.RuntimeMetrics;
 import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
-import co.cask.cdap.test.RuntimeStats;
+import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.TestBase;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -47,15 +47,12 @@ public class TweetCollectorFlowletTest extends TestBase {
     );
     File srcFile = TweetCollectorTestUtil.writeToTempFile(tweets.iterator());
 
-    ApplicationManager applicationManager = deployApplication(TweetCollectorApp.class);
-    applicationManager.startFlow("TweetCollectorFlow",
-                                 ImmutableMap.of(TweetCollectorFlowlet.ARG_TWITTER4J_DISABLED, "true",
-                                                 TweetCollectorFlowlet.ARG_SOURCE_FILE, srcFile.getPath()));
+    ApplicationManager appManager = deployApplication(TweetCollectorApp.class);
+    FlowManager flowManager = appManager.getFlowManager("TweetCollectorFlow");
+    flowManager.start(ImmutableMap.of(TweetCollectorFlowlet.ARG_TWITTER4J_DISABLED, "true",
+                                      TweetCollectorFlowlet.ARG_SOURCE_FILE, srcFile.getPath()));
 
-    RuntimeMetrics countMetrics = RuntimeStats.getFlowletMetrics(TweetCollectorApp.class.getSimpleName(),
-                                                                 "TweetCollectorFlow",
-                                                                 "persistor");
-
+    RuntimeMetrics countMetrics = flowManager.getFlowletMetrics("persistor");
     countMetrics.waitForProcessed(2, 2, TimeUnit.SECONDS);
 
     DataSetManager<ObjectStore<Tweet>> tweetsDataset = getDataset("tweets");
