@@ -90,7 +90,7 @@
   </modules>
 
   <properties>
-    <cdap.version>3.3.0-SNAPSHOT</cdap.version>
+    <cdap.version>3.4.0-SNAPSHOT</cdap.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.11</junit.version>
     <kafka.version>0.8.1.1</kafka.version>
