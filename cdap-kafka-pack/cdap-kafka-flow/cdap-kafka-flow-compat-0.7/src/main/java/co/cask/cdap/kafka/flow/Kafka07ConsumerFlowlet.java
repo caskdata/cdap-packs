@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Cask Data, Inc.
+ * Copyright © 2014-2015 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -295,7 +295,7 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
     final TopicPartition topicPartition = consumerInfo.getTopicPartition();
 
     Map<String, Long> offsets = Maps.newHashMap(consumerInfo.getReadOffset());
-    CompletionService<FetchResult> fetches = new ExecutorCompletionService<FetchResult>(executor);
+    CompletionService<FetchResult> fetches = new ExecutorCompletionService<>(executor);
     for (final KafkaBroker broker : brokers) {
       final SimpleConsumer consumer = getConsumer(broker, consumerInfo.getFetchSize());
       final long offset = getBrokerOffset(broker, consumerInfo, offsets, consumer);
@@ -391,7 +391,7 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
             continue;
           }
           offsets.put(result.getBroker().getId(), message.offset());
-          return new KafkaMessage<Map<String, Long>>(topicPartition, offsets, null, message.message().payload());
+          return new KafkaMessage<>(topicPartition, offsets, null, message.message().payload());
         }
         return endOfData();
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Cask Data, Inc.
+ * Copyright © 2014-2015 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -413,7 +413,7 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
 
     for (Map.Entry<TopicPartition, Integer> entry : config.entrySet()) {
       consumers.put(entry.getKey(),
-                    new KafkaConsumerInfo<OFFSET>(entry.getKey(), entry.getValue(), getBeginOffset(entry.getKey())));
+                    new KafkaConsumerInfo<>(entry.getKey(), entry.getValue(), getBeginOffset(entry.getKey())));
     }
     return consumers.build();
   }
@@ -438,13 +438,13 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
         // If the consumer info already exists, just update the fetch size if it changed
         if (info.getFetchSize() != fetchSize) {
           consumerInfos.put(topicPartition,
-                            new KafkaConsumerInfo<OFFSET>(topicPartition, fetchSize, info.getReadOffset()));
+                            new KafkaConsumerInfo<>(topicPartition, fetchSize, info.getReadOffset()));
         }
       } else {
         // Otherwise, create a new consumer info
         consumerInfos.put(topicPartition,
-                          new KafkaConsumerInfo<OFFSET>(topicPartition, fetchSize,
-                                                        getBeginOffset(entry.getKey())));
+                          new KafkaConsumerInfo<>(topicPartition, fetchSize,
+                                                  getBeginOffset(entry.getKey())));
       }
     }
   }

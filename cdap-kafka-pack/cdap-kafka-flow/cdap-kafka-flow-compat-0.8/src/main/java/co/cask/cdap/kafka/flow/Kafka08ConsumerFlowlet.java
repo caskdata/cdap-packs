@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Cask Data, Inc.
+ * Copyright © 2014-2015 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -175,8 +175,8 @@ public abstract class Kafka08ConsumerFlowlet<KEY, PAYLOAD> extends KafkaConsumer
             continue;
           }
           Message message = messageAndOffset.message();
-          return new KafkaMessage<Long>(topicPartition,
-                                        messageAndOffset.nextOffset(), message.key(), message.payload());
+          return new KafkaMessage<>(topicPartition,
+                                    messageAndOffset.nextOffset(), message.key(), message.payload());
         }
         return endOfData();
       }
@@ -265,7 +265,7 @@ public abstract class Kafka08ConsumerFlowlet<KEY, PAYLOAD> extends KafkaConsumer
     if (leader == null) {
       return null;
     }
-    String consumerName = String.format("%s-%d-kafka-consumer", getName(), getContext().getInstanceId());
+    String consumerName = String.format("%s-%d-kafka-consumer", getContext().getName(), getContext().getInstanceId());
     consumer = new SimpleConsumer(leader.getHostName(), leader.getPort(),
                                   SO_TIMEOUT, consumerInfo.getFetchSize(), consumerName);
     kafkaConsumers.put(topicPartition, consumer);

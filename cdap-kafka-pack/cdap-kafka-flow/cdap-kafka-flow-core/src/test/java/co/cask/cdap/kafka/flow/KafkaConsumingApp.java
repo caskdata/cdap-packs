@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Cask Data, Inc.
+ * Copyright © 2014-2015 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,8 +21,7 @@ import co.cask.cdap.api.annotation.UseDataSet;
 import co.cask.cdap.api.app.AbstractApplication;
 import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.dataset.lib.KeyValueTable;
-import co.cask.cdap.api.flow.Flow;
-import co.cask.cdap.api.flow.FlowSpecification;
+import co.cask.cdap.api.flow.AbstractFlow;
 import co.cask.cdap.api.flow.flowlet.AbstractFlowlet;
 import co.cask.cdap.api.flow.flowlet.Flowlet;
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ public abstract class KafkaConsumingApp extends AbstractApplication {
   }
 
 
-  public static final class KafkaConsumingFlow implements Flow {
+  public static final class KafkaConsumingFlow extends AbstractFlow {
 
     private final Flowlet sourceFlowlet;
 
@@ -50,16 +49,11 @@ public abstract class KafkaConsumingApp extends AbstractApplication {
     }
 
     @Override
-    public FlowSpecification configure() {
-      return FlowSpecification.Builder.with()
-        .setName("KafkaConsumingFlow")
-        .setDescription("")
-        .withFlowlets()
-        .add(sourceFlowlet)
-        .add(new DataSink())
-        .connect()
-        .from(sourceFlowlet).to(new DataSink())
-        .build();
+    public void configure() {
+      setName("KafkaConsumingFlow");
+      addFlowlet(sourceFlowlet);
+      addFlowlet(new DataSink());
+      connect(sourceFlowlet, new DataSink());
     }
   }
 
