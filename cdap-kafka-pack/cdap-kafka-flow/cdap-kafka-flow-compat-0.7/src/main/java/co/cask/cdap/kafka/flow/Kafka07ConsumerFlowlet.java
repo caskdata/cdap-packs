@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -310,7 +311,7 @@ public abstract class Kafka07ConsumerFlowlet<PAYLOAD>
 
     try {
       // Returns a concatenated iterator created from all fetches
-      List<Iterator<KafkaMessage<Map<String, Long>>>> messageIterators = Lists.newArrayList();
+      List<Iterator<KafkaMessage<Map<String, Long>>>> messageIterators = new ArrayList<>();
       for (int i = 0; i < brokers.size(); i++) {
         FetchResult result = fetches.take().get();
         messageIterators.add(handleFetch(consumerInfo, offsets, result));
