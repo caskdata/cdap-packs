@@ -41,6 +41,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -149,7 +150,7 @@ final class KafkaBrokerCache extends AbstractIdleService {
       return ImmutableList.of();
     }
 
-    List<KafkaBroker> result = Lists.newArrayList();
+    List<KafkaBroker> result = new ArrayList<>();
     for (String brokerId : Iterables.concat(partitionBrokers.tailMap(partition + 1).values())) {
       result.add(brokers.get(brokerId));
     }
@@ -271,7 +272,7 @@ final class KafkaBrokerCache extends AbstractIdleService {
       @Override
       public void onSuccess(NodeChildren result) {
         List<String> children = result.getChildren();
-        final List<ListenableFuture<BrokerPartition>> futures = Lists.newArrayListWithCapacity(children.size());
+        final List<ListenableFuture<BrokerPartition>> futures = new ArrayList<>(children.size());
 
         // Fetch data (number of partitions) from each broken node and transform it to BrokerPartition
         for (final String brokerId : children) {

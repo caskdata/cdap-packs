@@ -16,7 +16,6 @@
 
 package co.cask.cdap.kafka.flow;
 
-import com.clearspring.analytics.util.Lists;
 import com.google.common.collect.ImmutableList;
 import kafka.javaapi.producer.Producer;
 import kafka.javaapi.producer.ProducerData;
@@ -25,8 +24,10 @@ import org.apache.twill.internal.utils.Networks;
 import org.apache.twill.zookeeper.ZKClientService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +35,8 @@ import java.util.Properties;
 /**
  * Unit-test for Kafka consuming flowlet for Kafka 0.7.
  */
+// https://issues.cask.co/browse/CDAP-3822
+@Ignore
 public class Kafka07ConsumerFlowletTest extends KafkaConsumerFlowletTestBase {
 
   private static ZKClientService zkClient;
@@ -68,7 +71,7 @@ public class Kafka07ConsumerFlowletTest extends KafkaConsumerFlowletTestBase {
 
     ProducerConfig prodConfig = new ProducerConfig(prop);
 
-    List<ProducerData<String, String>> outMessages = Lists.newArrayList();
+    List<ProducerData<String, String>> outMessages = new ArrayList<>();
     for (Map.Entry<String, String> entry : messages.entrySet()) {
       outMessages.add(new ProducerData<>(topic, entry.getKey(), ImmutableList.of(entry.getValue())));
     }
