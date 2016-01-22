@@ -40,9 +40,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Product;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -116,10 +118,18 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     return args;
   }
 
+  private ApplicationManager deployApplicationWithScalaJar() {
+    URL classUrl = Product.class.getClassLoader().getResource("scala/Product.class");
+    String path = classUrl.getFile();
+
+    return deployApplication(getApplication(), new File(URI.create(path.substring(0, path.indexOf("!/")))));
+  }
+
   @Test
   public final void testFlowlet() throws Exception {
     String topic = "testTopic";
-    ApplicationManager appManager = deployApplication(getApplication());
+
+    ApplicationManager appManager = deployApplicationWithScalaJar();
     FlowManager flowManager =
       appManager.getFlowManager("KafkaConsumingFlow").start(getRuntimeArgs(topic, PARTITIONS, false));
 
@@ -167,7 +177,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   public void testChangeInstances() throws Exception {
     // Start the flow with one instance source.
     String topic = "testChangeInstances";
-    ApplicationManager appManager = deployApplication(getApplication());
+    ApplicationManager appManager = deployApplicationWithScalaJar();
     FlowManager flowManager =
       appManager.getFlowManager("KafkaConsumingFlow").start(getRuntimeArgs(topic, PARTITIONS, false));
 
@@ -209,7 +219,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     }
     sendMessage(topic, messages);
 
-    ApplicationManager appManager = deployApplication(getApplication());
+    ApplicationManager appManager = deployApplicationWithScalaJar();
     // -1 as the beginOffset signals that the flow should start reading from the last event currently in kafka (so it
     // should ignore the 5 that were sent before starting the flow.
     FlowManager flowManager =
@@ -248,7 +258,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     }
     sendMessage(topic, messages);
 
-    ApplicationManager appManager = deployApplication(getApplication());
+    ApplicationManager appManager = deployApplicationWithScalaJar();
     // Invalid start offset as the beginOffset throws OffsetOutOfRangeException on trying to fetch messages from Kafka.
     // Since the invalid offset is larger than the latest offset available, the flow should start reading from the 
     // last message currently in kafka (so it should ignore the 5 that were sent before starting the flow).
@@ -299,7 +309,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     // Wait for more than one minute for some log segments to get deleted.
     TimeUnit.SECONDS.sleep(80);
 
-    ApplicationManager appManager = deployApplication(getApplication());
+    ApplicationManager appManager = deployApplicationWithScalaJar();
 
     // Setup expected count by reading from earliest offset available
     FlowManager flowManager =
@@ -326,7 +336,7 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     // Clear everything, and read again with invalid offset
     clear();
 
-    appManager = deployApplication(getApplication());
+    appManager = deployApplicationWithScalaJar();
     // Invalid start offset as the beginOffset throws OffsetOutOfRangeException on trying to fetch messages from Kafka.
     // Since the invalid offset is smaller than the latest offset available, the flow should start reading from the
     // earliest message currently in kafka. The total number of events read should be equal to expectedCount
