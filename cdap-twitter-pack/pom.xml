@@ -23,13 +23,14 @@
   <artifactId>cdap-twitter-pack</artifactId>
   <groupId>co.cask.cdap.packs</groupId>
   <name>CDAP Twitter Pack</name>
-  <version>0.1.8-SNAPSHOT</version>
+  <version>0.1.9-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Data Application Platform for Hadoop: Twitter Pack</description>
   <url>https://github.com/caskdata/cdap-packs</url>
 
   <properties>
     <cdap.version>3.4.0-SNAPSHOT</cdap.version>
+    <guava.version>13.0.1</guava.version>
     <twitter4j.version>[4.0,)</twitter4j.version>
     <slf4j.version>1.7.5</slf4j.version>
     <junit.version>4.11</junit.version>
@@ -51,6 +52,11 @@
       <groupId>co.cask.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
