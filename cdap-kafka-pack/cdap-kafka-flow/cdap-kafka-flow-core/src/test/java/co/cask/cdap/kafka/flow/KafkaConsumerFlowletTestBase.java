@@ -27,6 +27,7 @@ import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.TestBase;
+import co.cask.cdap.test.TestConfiguration;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -35,6 +36,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +50,11 @@ import java.util.concurrent.TimeUnit;
  * Abstract base class for writing a Kafka consuming flowlet test.
  */
 public abstract class KafkaConsumerFlowletTestBase extends TestBase {
-  private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFlowletTestBase.class);
 
+  @ClassRule
+  public static final TestConfiguration CONF = new TestConfiguration("explore.enabled", false);
+
+  private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFlowletTestBase.class);
   private static final int PARTITIONS = 6;
 
   static InMemoryZKServer zkServer;
