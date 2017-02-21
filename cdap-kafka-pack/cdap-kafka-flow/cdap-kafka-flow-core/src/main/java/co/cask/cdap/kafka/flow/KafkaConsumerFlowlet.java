@@ -464,7 +464,9 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
   private void updateMaxProcessLimits() {
     // split the limits across the different consumerInfos. Otherwise, the first few consumerInfos may
     // starve the later consumerInfos
-    maxProcessEvents = kafkaConfigurer.getBatchSize() / consumerInfos.values().size();
     maxProcessMillis = kafkaConfigurer.getMaxProcessTimeMillis() / consumerInfos.values().size();
+    // minimum batch size of 1 (for instance, user might configure batch size of 10, and there may be 8 topic
+    // partitions). This would otherwise result in a batch size of 0
+    maxProcessEvents = Math.max(1, kafkaConfigurer.getBatchSize() / consumerInfos.values().size());
   }
 }

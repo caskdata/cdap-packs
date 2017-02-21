@@ -32,7 +32,7 @@ final class DefaultKafkaConfigurer implements KafkaConfigurer {
   private String brokers;
   private final Map<TopicPartition, Integer> topicPartitions = Maps.newHashMap();
 
-  private int batchSize = 100000;
+  private int batchSize = 1000;
   private long maxProcessTimeMillis = TimeUnit.SECONDS.toMillis(10);
 
   @Override
