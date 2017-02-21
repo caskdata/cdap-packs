@@ -86,7 +86,7 @@
   </modules>
 
   <properties>
-    <cdap.version>3.5.0-SNAPSHOT</cdap.version>
+    <cdap.version>3.5.3</cdap.version>
     <guava.version>13.0.1</guava.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.11</junit.version>
