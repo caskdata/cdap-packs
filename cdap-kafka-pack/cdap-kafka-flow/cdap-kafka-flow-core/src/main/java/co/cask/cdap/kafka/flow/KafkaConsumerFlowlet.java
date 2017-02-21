@@ -27,6 +27,7 @@ import co.cask.cdap.api.flow.flowlet.InputContext;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -74,6 +75,10 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
   private Map<TopicPartition, KafkaConsumerInfo<OFFSET>> changedConsumerInfos;
   private int instances;
 
+  private DefaultKafkaConfigurer kafkaConfigurer;
+  private int maxProcessEvents;
+  private long maxProcessMillis;
+
   /**
    * Initialize this {@link Flowlet}. Child class must call this method explicitly when overriding it.
    */
@@ -107,6 +112,9 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
     kafkaConfig = new KafkaConfig(kafkaConfigurer.getZookeeper(), kafkaConfigurer.getBrokers());
     consumerInfos = createConsumerInfos(kafkaConfigurer.getTopicPartitions());
     changedConsumerInfos = consumerInfos;
+
+    this.kafkaConfigurer = kafkaConfigurer;
+    updateMaxProcessLimits();
   }
 
   /**
@@ -138,8 +146,10 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
     boolean infosUpdated = false;
     // Poll for messages from Kafka
     for (KafkaConsumerInfo<OFFSET> info : consumerInfos.values()) {
+      Stopwatch stopwatch = new Stopwatch().start();
+      int numProcessed = 0;
       Iterator<KafkaMessage<OFFSET>> iterator = readMessages(info);
-      while (iterator.hasNext()) {
+      while (iterator.hasNext() && numProcessed++ < maxProcessEvents && stopwatch.elapsedMillis() < maxProcessMillis) {
         KafkaMessage<OFFSET> message = iterator.next();
         processMessage(message);
 
@@ -447,5 +457,16 @@ public abstract class KafkaConsumerFlowlet<KEY, PAYLOAD, OFFSET> extends Abstrac
                                                   getBeginOffset(entry.getKey())));
       }
     }
+    updateMaxProcessLimits();
+  }
+
+  // we need to update the limits whenever the number of consumerInfos may have changed
+  private void updateMaxProcessLimits() {
+    // split the limits across the different consumerInfos. Otherwise, the first few consumerInfos may
+    // starve the later consumerInfos
+    maxProcessMillis = kafkaConfigurer.getMaxProcessTimeMillis() / consumerInfos.values().size();
+    // minimum batch size of 1 (for instance, user might configure batch size of 10, and there may be 8 topic
+    // partitions). This would otherwise result in a batch size of 0
+    maxProcessEvents = Math.max(1, kafkaConfigurer.getBatchSize() / consumerInfos.values().size());
   }
 }

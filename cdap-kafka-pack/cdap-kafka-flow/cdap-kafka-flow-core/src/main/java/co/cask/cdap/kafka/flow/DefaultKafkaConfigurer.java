@@ -21,6 +21,7 @@ import org.apache.twill.kafka.client.TopicPartition;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Default implementation of {@link KafkaConfigurer}.
@@ -30,6 +31,9 @@ final class DefaultKafkaConfigurer implements KafkaConfigurer {
   private String zookeeper;
   private String brokers;
   private final Map<TopicPartition, Integer> topicPartitions = Maps.newHashMap();
+
+  private int batchSize = 1000;
+  private long maxProcessTimeMillis = TimeUnit.SECONDS.toMillis(10);
 
   @Override
   public void setZooKeeper(String zookeeper) {
@@ -51,6 +55,16 @@ final class DefaultKafkaConfigurer implements KafkaConfigurer {
     topicPartitions.put(new TopicPartition(topic, partition), fetchSize);
   }
 
+  @Override
+  public void setProcessBatchSize(int batchSize) {
+    this.batchSize = batchSize;
+  }
+
+  @Override
+  public void setMaxProcessTime(long maxProcessTimeMillis) {
+    this.maxProcessTimeMillis = maxProcessTimeMillis;
+  }
+
   String getBrokers() {
     return brokers;
   }
@@ -61,5 +75,13 @@ final class DefaultKafkaConfigurer implements KafkaConfigurer {
 
   Map<TopicPartition, Integer> getTopicPartitions() {
     return Collections.unmodifiableMap(topicPartitions);
+  }
+
+  int getBatchSize() {
+    return batchSize;
+  }
+
+  long getMaxProcessTimeMillis() {
+    return maxProcessTimeMillis;
   }
 }
