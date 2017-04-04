@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Application for testing Kafka consuming flowlet for Kafka 0.8.
@@ -72,6 +73,9 @@ public class Kafka08ConsumingApp extends KafkaConsumingApp {
           throw new IllegalStateException("Failed with value: " + value);
         }
         return;
+      } else if (value.startsWith("sleep")) {
+        // 'sleep:500'
+        TimeUnit.MILLISECONDS.sleep(Integer.parseInt(value.split(":")[1]));
       }
       emitter.emit(value);
     }
@@ -85,6 +89,12 @@ public class Kafka08ConsumingApp extends KafkaConsumingApp {
         configurer.setBrokers(runtimeArgs.get("kafka.brokers"));
       }
       setupTopicPartitions(configurer, runtimeArgs);
+      if (runtimeArgs.containsKey("batch.size")) {
+        configurer.setProcessBatchSize(Integer.parseInt(runtimeArgs.get("batch.size")));
+      }
+      if (runtimeArgs.containsKey("max.process.millis")) {
+        configurer.setMaxProcessTime(Integer.parseInt(runtimeArgs.get("max.process.millis")));
+      }
     }
 
     @Override
