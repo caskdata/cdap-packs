@@ -32,6 +32,7 @@
   <logger name="org.apache.hive" level="WARN"/>
   <logger name="org.quartz.core" level="WARN"/>
 
+  <logger name="co.cask.cdap" level="INFO" />
   <logger name="co.cask.cdap.kafka.flow" level="DEBUG" />
 
   <root level="INFO">

@@ -27,14 +27,17 @@ import co.cask.cdap.test.ApplicationManager;
 import co.cask.cdap.test.DataSetManager;
 import co.cask.cdap.test.FlowManager;
 import co.cask.cdap.test.TestBase;
+import co.cask.cdap.test.TestConfiguration;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.apache.tephra.TxConstants;
 import org.apache.twill.internal.zookeeper.InMemoryZKServer;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Abstract base class for writing a Kafka consuming flowlet test.
@@ -51,6 +55,10 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
   private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFlowletTestBase.class);
 
   private static final int PARTITIONS = 6;
+
+  // the tx timeout needs to be this small value in order to test processing limits (#testProcessingLimits)
+  @ClassRule
+  public static final TestConfiguration CONFIG = new TestConfiguration(TxConstants.Manager.CFG_TX_TIMEOUT, "2");
 
   static InMemoryZKServer zkServer;
   static int kafkaPort;
@@ -342,6 +350,59 @@ public abstract class KafkaConsumerFlowletTestBase extends TestBase {
     flowManager.stop();
     Assert.assertEquals(expectedCount, sinkMetrics.getProcessed());
     assertDatasetCount(expectedCount);
+  }
+
+  @Test
+  public void testProcessingLimits() throws Exception {
+    String topic = "testProcessingLimits";
+
+    ApplicationManager appManager = deployApplication(getApplication());
+    FlowManager flowManager = appManager.getFlowManager("KafkaConsumingFlow");
+
+    // running the flow with small batch size or processing duration allows the flow to complete within the transaction
+    // timeout
+    Map<String, String> runtimeArgs = getRuntimeArgs(topic, PARTITIONS, false);
+    runtimeArgs.put("batch.size", "10");
+    runFlow(flowManager, runtimeArgs, topic);
+
+    runtimeArgs = getRuntimeArgs(topic, PARTITIONS, false);
+    runtimeArgs.put("max.process.millis", "2000");
+    runFlow(flowManager, runtimeArgs, topic);
+
+    // without specifying batch size or max process duration, transaction timeout is encountered and so the events
+    // are not processed
+    runtimeArgs = getRuntimeArgs(topic, PARTITIONS, false);
+    try {
+      runFlow(flowManager, runtimeArgs, topic);
+      Assert.fail();
+    } catch (TimeoutException e) {
+      // expected
+    }
+  }
+
+  // helper for #testProcessingLimits
+  private void runFlow(FlowManager flowManager, Map<String, String> args, String topic) throws Exception {
+    // Publish 100 messages to Kafka, the flow should consume them
+    int msgCount = 100;
+    Map<String, String> messages = Maps.newHashMap();
+    for (int i = 0; i < msgCount; i++) {
+      messages.put(Integer.toString(i), "sleep:100");
+    }
+    sendMessage(topic, messages);
+
+    flowManager.start(args);
+    try {
+      RuntimeMetrics sinkMetrics = getMetricsManager().getFlowletMetrics(
+        Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "DataSink");
+      sinkMetrics.waitForProcessed(msgCount, 15, TimeUnit.SECONDS);
+      // should be no exceptions/retries
+      RuntimeMetrics sourceMetrics = getMetricsManager().getFlowletMetrics(
+        Id.Namespace.DEFAULT.getId(), "KafkaConsumingApp", "KafkaConsumingFlow", "KafkaSource");
+      Assert.assertEquals(0, sourceMetrics.getException());
+    } finally {
+      flowManager.stop();
+      getMetricsManager().resetAll();
+    }
   }
 
   private void assertDatasetCount(long expectedMsgCount) throws Exception {
