@@ -24,7 +24,7 @@ public interface KafkaConsumerConfigurer {
   /**
    * Default message fetch size in bytes when making Kafka fetch request.
    */
-  static final int DEFAULT_FETCH_SIZE = 1048576;  // 1M
+  int DEFAULT_FETCH_SIZE = 1048576;  // 1M
 
   /**
    * Adds a topic partition to consume message from. Same as calling
@@ -37,11 +37,26 @@ public interface KafkaConsumerConfigurer {
   void addTopicPartition(String topic, int partition);
 
   /**
-   * Adds a topic partition to consumer message from, using the given fetch size for each fetch request.
+   * Adds a topic partition to consume message from, using the given fetch size for each fetch request.
    *
    * @param topic name of the Kafka topic
    * @param partition partition number
    * @param fetchSize maximum number of bytes to fetch per request
    */
   void addTopicPartition(String topic, int partition, int fetchSize);
+
+  /**
+   * Sets an upper bound on the number of messages that will be processed before the offsets are committed.
+   *
+   * @param batchSize number of messages to process
+   */
+  void setProcessBatchSize(int batchSize);
+
+  /**
+   * Sets an approximation on the upper bound of time that will be spent processing messages before the offsets
+   * are committed.
+   *
+   * @param maxProcessTimeMillis amount of time that can be spent processing events, in milliseconds
+   */
+  void setMaxProcessTime(long maxProcessTimeMillis);
 }
