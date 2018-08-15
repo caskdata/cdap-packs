@@ -52,8 +52,11 @@ import java.util.concurrent.TimeoutException;
  * Abstract base class for writing a Kafka consuming flowlet test.
  */
 public abstract class KafkaConsumerFlowletTestBase extends TestBase {
-  private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFlowletTestBase.class);
 
+  @ClassRule
+  public static final TestConfiguration CONF = new TestConfiguration("explore.enabled", false);
+
+  private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFlowletTestBase.class);
   private static final int PARTITIONS = 6;
 
   // the tx timeout needs to be this small value in order to test processing limits (#testProcessingLimits)
